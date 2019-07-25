@@ -1,0 +1,25 @@
+{
+  "name": "optimal/file-managing",
+  "description": "Simple package for file manipulation.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "image",
+    "resize"
+  ],
+  "authors": [
+    {
+      "name": "Radim Vidlák",
+      "email": "radim.vidlak@gmail.com"
+    },
+    {
+      "name": "Jan Jindra",
+      "email": "jindra@optimal-program.cz"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Optimal\\FileManaging\\": "src/"
+    }
+  }
+}
