@@ -7,8 +7,8 @@
  */
 
 namespace Optimal\FileManaging\Renderers;
-use Optimal\FileManaging\FileObject\File;
-use Optimal\FileManaging\FileObject\Image;
+use Optimal\FileManaging\resources\FileResource;
+use Optimal\FileManaging\resources\Image;
 //use App\Core\Utils\HtmlElement;
 //use App\Core\Utils\Icons\IconsFactory;
 //use App\Core\View;
@@ -23,7 +23,7 @@ class FileRenderer extends HtmlElement {
     protected $time;
     protected $additionalInfo;
 
-    function __construct(File $fileSource)
+    function __construct(FileResource $fileSource)
     {
 
         if($fileSource == null){
@@ -38,7 +38,7 @@ class FileRenderer extends HtmlElement {
         $this->additionalInfo = null;
     }
 
-    public function setFileSource(File $fileSource){
+    public function setFileSource(FileResource $fileSource){
         $this->fileSource = $fileSource;
     }
 

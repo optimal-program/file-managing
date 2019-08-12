@@ -8,7 +8,7 @@
 
 namespace Optimal\FileManaging\Renderers;
 
-use Optimal\FileManaging\FileObject\Image;
+use Optimal\FileManaging\resources\Image;
 //use App\Core\View;
 
 final class ImageRenderer extends FileRenderer {

@@ -5,7 +5,7 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\GDException;
-use Optimal\FileManaging\FileObject\GDImage;
+use Optimal\FileManaging\resources\GDImage;
 
 class ImagesManager
 {
