@@ -4,161 +4,100 @@ namespace Optimal\FileManaging;
 
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
-use Optimal\FileManaging\Exception\GDException;
-use Optimal\FileManaging\resources\GDImage;
+use Optimal\FileManaging\Exception\FileNotFoundException;
+use Optimal\FileManaging\resources\GDResource;
+use Optimal\FileManaging\resources\ImageResource;
+use Optimal\FileManaging\resources\ImagickResource;
 
 class ImagesManager
 {
+
+    const RESOURCE_TYPE_GD = "gd";
+    const RESOURCE_TYPE_IMAGICK = "imagick";
+
     private $newDestination;
     private $commander;
 
-    function __construct()
-    {
+    function __construct(){
         $this->commander = new FileCommander();
     }
 
     /**
-     * @param $destination
-     * @return DirectoryNotFoundException
-     */
-    public function setDestination($destination)
-    {
-        $this->commander->setPath($destination);
-        $this->newDestination = $destination;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDestination()
-    {
-        return $this->commander->getActualPath();
-    }
-
-    /**
-     * @param $destination
+     * @param $dir
      * @throws DirectoryNotFoundException
      */
-    public function setOutputDestination($destination)
-    {
-        $this->commander->checkPath($destination);
-        $this->newDestination = $destination;
+    public function setTargetDirectory($dir){
+        $this->commander->setPath($dir);
+        $this->setOutputDirectory($dir);
+    }
+
+    /**
+     * @param $dir
+     * @throws DirectoryNotFoundException
+     */
+    public function setOutputDirectory($dir){
+        $this->commander->checkPath($dir);
+        $this->newDestination = $dir;
+    }
+
+    /**
+     * @return null
+     * @throws DirectoryNotFoundException
+     */
+    public function getTargetDirectory(){
+        return $this->commander->getAbsolutePath();
     }
 
     /**
      * @return mixed
      */
-    public function getOutputDestination()
-    {
+    public function getOutputDirectory(){
         return $this->newDestination;
     }
 
     /**
-     * @param $source
-     * @return bool
-     */
-    public function isValidIMG($source)
-    {
-        if (gettype($source) == "resource") {
-            if (get_resource_type($source) == "gd") {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $imageName
-     * @param $imageExtension
-     * @return GDImage
-     * @throws \Exception
-     */
-    public function loadGDImage($imageName, $imageExtension)
-    {
-        if ($this->commander->getActualPath() != '') {
-            if ($imageName != '') {
-                if ($imageExtension != '') {
-
-                    $destinationImg = $this->commander->searchFile($imageName, $imageExtension);
-
-                    $targetImg = clone($destinationImg);
-                    $targetImg->setRealDestination($this->newDestination);
-
-                    $GDResource = $this->createGDResourceFrom($imageName, $imageExtension);
-                    $image = new GDImage($destinationImg, $targetImg, $GDResource);
-
-                    return $image;
-
-                } else {
-                    throw new FileException("No image: " . $imageName . " extension defined!");
-                }
-            } else {
-                throw new FileException("No image name defined!");
-            }
-        } else {
-            throw new FileException("No images destination defined!");
-        }
-
-    }
-
-    /**
-     * @param $imageName
-     * @param $imageExtension
-     * @param $GDResource
-     * @return GDImage
-     * @throws FileException
-     * @throws GDException
-     */
-    public function loadGDImageViaGD($imageName, $imageExtension, $GDResource)
-    {
-
-        if ($this->isValidIMG($GDResource)) {
-            if ($imageName != '') {
-                if ($imageExtension != '') {
-                    $destinationImg = $this->commander->searchFile($imageName, $imageExtension);
-                    $targetImg = clone($destinationImg);
-                    $targetImg->setRealDestination($this->newDestination);
-                    return new GDImage($destinationImg, $targetImg, $GDResource);
-                } else {
-                    throw new FileException("No image: " . $imageName . " extension defined!");
-                }
-            } else {
-                throw new FileException("No image name defined!");
-            }
-        } else {
-            throw new GDException("GD resource is not valid");
-        }
-
-    }
-
-    /**
      * @param $imgName
-     * @param $imgExtension
-     * @return bool|resource
-     * @throws GDException
+     * @param null $imgExtension
+     * @param string $resourceType
+     * @return GDResource|ImageResource|null
+     * @throws DirectoryNotFoundException
+     * @throws FileException
+     * @throws FileNotFoundException
      */
-    public function createGDResourceFrom($imgName, $imgExtension)
-    {
-        $image = false;
+    public function loadImageManageResource($imgName, $imgExtension = null, $resourceType = self::RESOURCE_TYPE_GD){
 
-        switch (strtolower($imgExtension)) {
-            case "jpg":
-            case "jpeg":
-                $image = imagecreatefromjpeg($this->commander->getActualPath() . "/" . $imgName . "." . $imgExtension);
-                break;
-            case "png":
-                $image = imagecreatefrompng($this->commander->getActualPath() . "/" . $imgName . "." . $imgExtension);
-                break;
-            case "gif":
-                $image = imagecreatefromgif($this->commander->getActualPath() . "/" . $imgName . "." . $imgExtension);
+        if(empty($imgName)){
+            throw new FileException("Image name is required");
         }
 
-        if (!$this->isValidIMG($image)) {
-            throw new GDException("Creation of resource was not successful");
+        if($imgExtension == null){
+            $parts = explode(".", $imgName);
+            $imgName = $parts[0];
+            $imgExtension = $parts[1];
         }
 
-        return $image;
+        if($this->commander->fileExists($imgName, $imgExtension)){
+
+            $image = $this->commander->getImage($imgName, $imgExtension);
+            $image->setNewPath($this->newDestination);
+
+            $resource = null;
+
+            switch ($resourceType){
+                case "gd":
+                    $resource = new GDResource($image, $this->commander);
+                break;
+                case "imagick":
+                    $resource = new ImagickResource($image);
+                break;
+            }
+
+            return $resource;
+
+        } else {
+            throw new FileNotFoundException("File: ".$imgName.".".$imgExtension." not found");
+        }
+
     }
 
     /**
@@ -167,7 +106,7 @@ class ImagesManager
      * @param string $type
      * @return null|resource
      * @throws \Exception
-     */
+     *
     public function createEmptyGD($width, $height, $type = "truecolor")
     {
         $image = null;
@@ -186,23 +125,6 @@ class ImagesManager
 
         return $image;
     }
-
-    /**
-     * @param $imgNameExt
-     * @return mixed|null
-     * @throws \Exception
-     */
-    public function getIMGInHTML($imgNameExt)
-    {
-
-        if ($this->commander->getActualPath() != '') {
-            $explode = explode(".", $imgNameExt);
-            $img = $this->commander->searchFile($explode[ 0 ], $explode[ 1 ]);
-            return $img;
-        } else {
-            throw new DirectoryNotFoundException("No images destination defined");
-        }
-    }
-
+    */
 }
 

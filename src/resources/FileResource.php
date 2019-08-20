@@ -18,18 +18,17 @@ class FileResource
 {
 
     protected $name;
-    protected $newName;
+    protected $newName = null;
 
     protected $extension;
-    protected $newExtension;
+    protected $newExtension = null;
 
     protected $size;
 
     protected $path;
-    protected $newPath;
+    protected $newPath = null;
 
     protected $relativePath;
-
     protected $additionalInfo;
 
     /**
@@ -75,22 +74,29 @@ class FileResource
     /**
      * @return string
      */
-    public function getRealExtension(){
+    public function getExtension(){
         return $this->extension;
     }
 
     /**
      * @return string
      */
-    public function getRealName(){
+    public function getName(){
         return $this->name;
     }
 
     /**
      * @return string
      */
-    public function getRealNameExtension(){
+    public function getNameExtension(){
         return $this->name.".".$this->extension;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNewNameExtension(){
+        return ($this->newName != null ? $this->newName : $this->name).".".($this->newExtension != null ? $this->newExtension : $this->extension);
     }
 
     /**
@@ -104,7 +110,7 @@ class FileResource
      * @return string
      */
     public function getPathToFile(){
-        return $this->path."/".$this->name.".".$this->extension;
+        return $this->path."/".$this->getNameExtension();
     }
 
     /**
@@ -177,6 +183,20 @@ class FileResource
         return $this->newPath;
     }
 
+    /**
+     * @return string
+     */
+    public function getNewPathToFile(){
+
+        if($this->newPath == null){
+            return null;
+        }
+
+        $name = $this->getNewNameExtension();
+
+        return $this->newPath."/".$name;
+    }
+
     public function applyNewSettings(){
         $this->name = $this->newName;
         $this->extension = $this->newExtension;
@@ -240,9 +260,9 @@ class FileResource
     public function parseString($string)
     {
 
-        $string = str_replace("{realName}", $this->getRealName(), $string);
-        $string = str_replace("{realExtension}", $this->getRealExtension(), $string);
-        $string = str_replace("{realNameEx}", $this->getRealNameExtension(), $string);
+        $string = str_replace("{realName}", $this->getName(), $string);
+        $string = str_replace("{realExtension}", $this->getExtension(), $string);
+        $string = str_replace("{realNameEx}", $this->getNameExtension(), $string);
         $string = str_replace("{realFileSize}", $this->getFileSize(), $string);
         $string = str_replace("{name}", $this->getDbName(), $string);
         $string = str_replace("{nameEx}", $this->getDbNameExtension(), $string);

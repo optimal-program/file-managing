@@ -88,10 +88,31 @@ final class ImageResource extends FileResource
      * @param $orientation
      * @return $this
      */
-    public function setRealOrientation($orientation)
+    public function setOrientation($orientation)
     {
         $this->orientation = $orientation;
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isJPG(){
+        return $this->extension == "jpg" || $this->extension == "jpeg";
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPNG(){
+        return $this->extension == "png";
+    }
+
+    /**
+     * @return bool
+     */
+    public function isGIF(){
+        return $this->extension == "gif";
     }
 
     /**
@@ -103,9 +124,9 @@ final class ImageResource extends FileResource
 
         $string = parent::parseString($string);
 
-        $string = str_replace("{realWidth}", $this->width, $string);
-        $string = str_replace("{realHeight}", $this->height, $string);
-        $string = str_replace("{realOrientation}", $this->orientation, $string);
+        $string = str_replace("{width}", $this->width, $string);
+        $string = str_replace("{height}", $this->height, $string);
+        $string = str_replace("{orientation}", $this->orientation, $string);
 
         return $string;
     }

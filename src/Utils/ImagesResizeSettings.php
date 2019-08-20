@@ -19,14 +19,24 @@ class ImagesResizeSettings
         $this->cropType = self::CROP_TYPE_CROP;
     }
 
+    /**
+     * @param $width
+     */
     public function setResizeWidth($width){
         $this->width = $width;
     }
 
+    /**
+     * @param $height
+     */
     public function setResizeHeight($height){
         $this->height = $height;
     }
 
+    /**
+     * @param $type
+     * @throws \Exception
+     */
     public function setResizeType($type){
 
         if($type != self::CROP_TYPE_CROP && $type != self::CROP_TYPE_SUPPLEMENT){
@@ -37,14 +47,23 @@ class ImagesResizeSettings
 
     }
 
+    /**
+     * @return int|null
+     */
     public function getResizeWidth(){
         return $this->width;
     }
 
+    /**
+     * @return int|null
+     */
     public function getResizeHeight(){
         return $this->height;
     }
 
+    /**
+     * @return string|null
+     */
     public function getResizeType(){
         return $this->cropType;
     }
