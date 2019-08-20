@@ -1,10 +1,4 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 08.10.2017
- * Time: 14:09
- */
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\resources;
 
@@ -15,7 +9,14 @@ final class ImageResource extends FileResource
     protected $height;
     protected $orientation;
 
-    function __construct($path, $name, $extension = null)
+    /**
+     * ImageResource constructor.
+     * @param string $path
+     * @param string $name
+     * @param string|null $extension
+     * @throws \Optimal\FileManaging\Exception\FileException
+     */
+    function __construct(string $path,string $name,?string $extension = null)
     {
         parent::__construct($path, $name, $extension);
     }
@@ -41,54 +42,54 @@ final class ImageResource extends FileResource
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getWidth()
+    public function getWidth():int
     {
         return $this->width;
     }
 
     /**
-     * @param $width
-     * @return $this
+     * @param int $width
+     * @return ImageResource
      */
-    public function setWidth($width)
+    public function setWidth(int $width):ImageResource
     {
         $this->width = $width;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getHeight()
+    public function getHeight():int
     {
         return $this->height;
     }
 
     /**
-     * @param $height
-     * @return $this
+     * @param int $height
+     * @return ImageResource
      */
-    public function setHeight($height)
+    public function setHeight(int $height):ImageResource
     {
         $this->height = $height;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getOrientation()
+    public function getOrientation():int
     {
         return $this->orientation;
     }
 
     /**
-     * @param $orientation
-     * @return $this
+     * @param int $orientation
+     * @return ImageResource
      */
-    public function setOrientation($orientation)
+    public function setOrientation(int $orientation):ImageResource
     {
         $this->orientation = $orientation;
         return $this;
@@ -97,29 +98,29 @@ final class ImageResource extends FileResource
     /**
      * @return bool
      */
-    public function isJPG(){
+    public function isJPG():bool{
         return $this->extension == "jpg" || $this->extension == "jpeg";
     }
 
     /**
      * @return bool
      */
-    public function isPNG(){
+    public function isPNG():bool{
         return $this->extension == "png";
     }
 
     /**
      * @return bool
      */
-    public function isGIF(){
+    public function isGIF():bool{
         return $this->extension == "gif";
     }
 
     /**
-     * @param $string
-     * @return mixed
+     * @param string $string
+     * @return string
      */
-    public function parseString($string)
+    public function parseString(string $string):string
     {
 
         $string = parent::parseString($string);

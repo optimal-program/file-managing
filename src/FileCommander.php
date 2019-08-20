@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging;
 
@@ -20,15 +20,12 @@ class FileCommander
     private $actualPath = null;
     private $basePath = null;
 
-    private $dirs  = [];
-    private $files = [];
-
     /**
-     * @param $path
+     * @param string $path
      * @return string
      * @throws DirectoryNotFoundException
      */
-    public function checkPath($path)
+    public function checkPath(string $path):string
     {
         if (!file_exists($path)) {
             throw new DirectoryNotFoundException("Directory: " . $path . " not found, check whether you typed path to directory from root of project");
@@ -37,10 +34,10 @@ class FileCommander
     }
 
     /**
-     * @param $path
+     * @param string $path
      * @throws DirectoryNotFoundException
      */
-    public function setPath($path)
+    public function setPath(string $path):void
     {
         try {
             $path = str_replace("\\", "/", $path);
@@ -54,10 +51,10 @@ class FileCommander
     }
 
     /**
-     * @return null
+     * @return string|null
      * @throws DirectoryNotFoundException
      */
-    public function getAbsolutePath()
+    public function getAbsolutePath():?string
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
         return $this->actualPath;
@@ -67,7 +64,7 @@ class FileCommander
      * @return string
      * @throws DirectoryNotFoundException
      */
-    public function getRelativePath()
+    public function getRelativePath():string
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
         return ltrim(str_replace(SystemPaths::getScriptPath(), "", $this->actualPath), "/");
@@ -77,7 +74,8 @@ class FileCommander
      * @return string
      * @throws DirectoryNotFoundException
      */
-    public function getUrlToDirectory(){
+    public function getUrlToDirectory():string
+    {
         return SystemPaths::getUrlDomain()."/".$this->getRelativePath();
     }
 
@@ -85,15 +83,16 @@ class FileCommander
      * @param array $files
      * @return array
      */
-    private function sortFiles($files) {
-        return usort($files, "strnatcasecmp");
+    private function sortFiles(array $files):array {
+        usort($files, "strnatcasecmp");
+        return $files;
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @throws DirectoryNotFoundException
      */
-    public function moveToDir($name)
+    public function moveToDir(string $name)
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -121,26 +120,25 @@ class FileCommander
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return bool
      * @throws DirectoryNotFoundException
      */
-    public function directoryExists($name)
+    public function directoryExists(string $name):bool
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
         return file_exists($this->actualPath . "/" . $name) && is_dir($this->actualPath . "/" . $name);
     }
 
     /**
-     * @param $dirName
+     * @param string $dirName
      * @param bool $moveToDir
      * @param int $chmod
      * @throws CreateDirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function addDirectory($dirName, $moveToDir = false, $chmod = 0777)
+    public function addDirectory(string $dirName,bool $moveToDir = false,int $chmod = 0777)
     {
-
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
         $dirName = rtrim($dirName, "/");
@@ -157,19 +155,19 @@ class FileCommander
             }
 
         }
-
     }
 
     /**
      * @param bool $sort
-     * @return array|bool|is_dir
+     * @return array
      * @throws DirectoryNotFoundException
      */
-    public function getDirectories($sort = true)
+    public function getDirectories(bool $sort = true):array
     {
         if ($this->actualPath == null) {
             throw new DirectoryNotFoundException("No directory set");
         }
+
         $dirs = array_filter(glob(".*"), 'is_dir');
 
         if ($sort) {
@@ -182,10 +180,11 @@ class FileCommander
     /**
      * @param string $regex
      * @param bool $sort
-     * @return array|bool|is_dir
+     * @return array
      * @throws DirectoryNotFoundException
      */
-    public function searchDirectories($regex = ".*", $sort = true){
+    public function searchDirectories(string $regex = ".*",bool $sort = true):array
+    {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
         $dirs = array_filter(glob($regex), 'is_dir');
 
@@ -197,13 +196,12 @@ class FileCommander
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
-     * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function removeDir($name)
+    public function removeDir(string $name)
     {
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
@@ -224,13 +222,12 @@ class FileCommander
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
-     * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function clearDir($name)
+    public function clearDir(string $name)
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -248,11 +245,11 @@ class FileCommander
     }
 
     /**
-     * @param $path
+     * @param string $path
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      */
-    private function DeleteDir($path)
+    private function DeleteDir(string $path)
     {
         $files = array_diff(scandir($path), array(' . ', ' ..'));
 
@@ -272,13 +269,13 @@ class FileCommander
     }
 
     /**
-     * @param $name
-     * @param $newName
+     * @param string $name
+     * @param string $newName
      * @param bool $recursive
      * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function renameDir($name, $newName, $recursive = false) {
+    public function renameDir(string $name,string $newName,bool $recursive = false) {
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -296,13 +293,13 @@ class FileCommander
     }
 
     /**
-     * @param $path
-     * @param $name
-     * @param $newName
+     * @param string $path
+     * @param string $name
+     * @param string $newName
      * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
-    private function renameDirRec($path, $name, $newName)
+    private function renameDirRec(?string $path, string $name,string $newName)
     {
 
         foreach ($this->getDirectories() as $dir) {
@@ -319,12 +316,12 @@ class FileCommander
     }
 
     /**
-     * @param $name
-     * @param null $extension
+     * @param string $name
+     * @param string|null $extension
      * @return bool
      * @throws DirectoryNotFoundException
      */
-    public function fileExists($name, $extension = null)
+    public function fileExists(string $name,?string $extension = null):bool
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -339,10 +336,10 @@ class FileCommander
 
 
     /**
-     * @param $extension
+     * @param string $extension
      * @return bool
      */
-    public function isImage($extension)
+    public function isImage(string $extension):bool
     {
         $extension = strtolower($extension);
         $imagesExtension = ["jpg", "png", "jpeg", "gif", "tiff", "bmp"];
@@ -352,11 +349,12 @@ class FileCommander
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return array
+     * @return FileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    protected function getFilesRegex($pattern = ".*", $sort = true){
+    protected function getFilesRegex(string $pattern = ".*",bool $sort = true):array
+    {
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -382,12 +380,14 @@ class FileCommander
     }
 
     /**
-     * @param $name
-     * @param null $extension
+     * @param string $name
+     * @param string|null $extension
      * @return FileResource
+     * @throws DirectoryNotFoundException
      * @throws FileException
+     * @throws FileNotFoundException
      */
-    public function getFile($name, $extension = null){
+    public function getFile(string $name,?string $extension = null){
 
         if($extension == null){
             $parts = explode(".", $name);
@@ -395,38 +395,43 @@ class FileCommander
             $extension = strtolower($parts[1]);
         }
 
+        if(!$this->fileExists($name, $extension)){
+            throw new FileNotFoundException("File: ".$name.".".$extension." not found");
+        }
+
         return new FileResource($this->actualPath, $name, $extension);
     }
 
     /**
      * @param bool $sort
-     * @return array
+     * @return FileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function getFiles($sort = true){
+    public function getFiles(bool $sort = true):array
+    {
         return $this->getFilesRegex(".*", $sort);
     }
 
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return array
+     * @return FileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function searchFiles($pattern = ".*", $sort = true){
+    public function searchFiles(string $pattern = ".*",bool $sort = true):array {
         return $this->getFilesRegex($pattern, $sort);
     }
 
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return array
+     * @return ImageResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    protected function getImagesRegex($pattern = ".*", $sort = true){
+    protected function getImagesRegex(string $pattern = ".*",bool $sort = true):array {
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -452,12 +457,12 @@ class FileCommander
     }
 
     /**
-     * @param $name
-     * @param null $extension
+     * @param string $name
+     * @param string|null $extension
      * @return ImageResource
      * @throws FileException
      */
-    public function getImage($name, $extension = null){
+    public function getImage(string $name,?string $extension = null):ImageResource{
 
         if($extension == null){
             $parts = explode(".", $name);
@@ -470,22 +475,22 @@ class FileCommander
 
     /**
      * @param bool $sort
-     * @return array
+     * @return ImageResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function getImages($sort = true){
+    public function getImages(bool $sort = true):array {
         return $this->getImagesRegex(".*", $sort);
     }
 
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return array
+     * @return ImageResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function searchImages($pattern = ".*", $sort = true){
+    public function searchImages(string $pattern = ".*",bool $sort = true):array {
         return $this->getImagesRegex($pattern, $sort);
     }
 
@@ -514,7 +519,7 @@ class FileCommander
      * @throws CreateFileException
      * @throws DirectoryNotFoundException
      */
-    public function createFile($name, $extension, $content = "\n")
+    public function createFile(string $name,string $extension,string $content = "\n"):bool
     {
 
         if ($name != "") {
@@ -555,7 +560,7 @@ class FileCommander
      * @param bool $append
      * @throws CreateFileException
      */
-    public function writeToFile($name, $extension, $content = "\n", $append = true)
+    public function writeToFile(string $name,string $extension,string $content = "\n",bool $append = true)
     {
 
         if ($name != "") {
@@ -585,13 +590,13 @@ class FileCommander
     }
 
     /**
-     * @param $name
-     * @param null $extension
+     * @param string $name
+     * @param string|null $extension
      * @param string $newName
      * @return bool
      * @throws FileException
      */
-    public function renameFileTo($name, $extension = null, $newName = "")
+    public function renameFileTo(string $name,?string $extension = null,string $newName = ""):bool
     {
 
         if ($name != "") {
@@ -619,15 +624,15 @@ class FileCommander
     }
 
     /**
-     * @param $path
-     * @param $name
-     * @param null $extension
-     * @param null $renameTo
+     * @param string $path
+     * @param string $name
+     * @param string|null $extension
+     * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function copyFileFromAnotherDirectory($path, $name, $extension = null, $renameTo = null) {
+    public function copyFileFromAnotherDirectory(string $path,string $name,?string $extension = null,?string $renameTo = null):bool {
 
         if(file_exists($path) && is_dir($path)){
 
@@ -656,15 +661,15 @@ class FileCommander
     }
 
     /**
-     * @param $path
-     * @param $name
-     * @param null $extension
-     * @param null $renameTo
+     * @param string $path
+     * @param string $name
+     * @param string|null $extension
+     * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function copyFileToAnotherDirectory($path, $name, $extension = null, $renameTo = null) {
+    public function copyFileToAnotherDirectory(string $path,string $name,?string $extension = null,?string $renameTo = null):bool {
 
         if(file_exists($path) && is_dir($path)){
 
@@ -693,10 +698,10 @@ class FileCommander
     }
 
     /**
-     * @param $pattern
+     * @param string $pattern
      * @throws DeleteFileException
      */
-    public function removeFile($pattern)
+    public function removeFile(string $pattern)
     {
         if ($pattern != "") {
 

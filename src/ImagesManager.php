@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging;
 
@@ -6,6 +6,7 @@ use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
 use Optimal\FileManaging\resources\GDResource;
+use Optimal\FileManaging\resources\ImageManageResource;
 use Optimal\FileManaging\resources\ImageResource;
 use Optimal\FileManaging\resources\ImagickResource;
 
@@ -23,48 +24,49 @@ class ImagesManager
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @throws DirectoryNotFoundException
      */
-    public function setTargetDirectory($dir){
+    public function setTargetDirectory(string $dir){
         $this->commander->setPath($dir);
         $this->setOutputDirectory($dir);
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @throws DirectoryNotFoundException
      */
-    public function setOutputDirectory($dir){
+    public function setOutputDirectory(string $dir){
         $this->commander->checkPath($dir);
         $this->newDestination = $dir;
     }
 
     /**
-     * @return null
+     * @return string
      * @throws DirectoryNotFoundException
      */
-    public function getTargetDirectory(){
+    public function getTargetDirectory():string {
         return $this->commander->getAbsolutePath();
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getOutputDirectory(){
+    public function getOutputDirectory():string {
         return $this->newDestination;
     }
 
     /**
-     * @param $imgName
-     * @param null $imgExtension
+     * @param string $imgName
+     * @param string|null $imgExtension
      * @param string $resourceType
-     * @return GDResource|ImageResource|null
+     * @return ImageManageResource
      * @throws DirectoryNotFoundException
      * @throws FileException
      * @throws FileNotFoundException
      */
-    public function loadImageManageResource($imgName, $imgExtension = null, $resourceType = self::RESOURCE_TYPE_GD){
+    public function loadImageManageResource(string $imgName,?string $imgExtension = null,string $resourceType = self::RESOURCE_TYPE_GD):ImageManageResource
+    {
 
         if(empty($imgName)){
             throw new FileException("Image name is required");
@@ -88,7 +90,7 @@ class ImagesManager
                     $resource = new GDResource($image, $this->commander);
                 break;
                 case "imagick":
-                    $resource = new ImagickResource($image);
+                    $resource = new ImagickResource($image, $this->commander);
                 break;
             }
 

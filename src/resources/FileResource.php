@@ -1,10 +1,4 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 08.10.2017
- * Time: 14:09
- */
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\resources;
 
@@ -33,12 +27,12 @@ class FileResource
 
     /**
      * FileResource constructor.
-     * @param $path
-     * @param $name
-     * @param null $extension
+     * @param string $path
+     * @param string $name
+     * @param string|null $extension
      * @throws FileException
      */
-    function __construct($path, $name, $extension = null){
+    function __construct(string $path,string $name,?string $extension = null){
 
         if(!file_exists($path)){
             throw new FileException("Path is not valid");
@@ -74,119 +68,119 @@ class FileResource
     /**
      * @return string
      */
-    public function getExtension(){
+    public function getExtension():string {
         return $this->extension;
     }
 
     /**
      * @return string
      */
-    public function getName(){
+    public function getName():string {
         return $this->name;
     }
 
     /**
      * @return string
      */
-    public function getNameExtension(){
+    public function getNameExtension():string {
         return $this->name.".".$this->extension;
     }
 
     /**
      * @return string
      */
-    public function getNewNameExtension(){
+    public function getNewNameExtension():string {
         return ($this->newName != null ? $this->newName : $this->name).".".($this->newExtension != null ? $this->newExtension : $this->extension);
     }
 
     /**
      * @return string
      */
-    public function getPath(){
+    public function getFileDirectoryPath():string {
         return $this->path;
     }
 
     /**
      * @return string
      */
-    public function getPathToFile(){
+    public function getFilePath():string {
         return $this->path."/".$this->getNameExtension();
     }
 
     /**
      * @return string
      */
-    public function getRelativePathToFile(){
+    public function getFileRelativePath():string {
         return ltrim(str_replace(SystemPaths::getScriptPath(), "", $this->path), "/")."/". $this->name.".".$this->extension;
     }
 
     /**
      * @return string
      */
-    public function getUrlToFile(){
+    public function getUrlToFile():string {
         return SystemPaths::getBaseUrl() . "/" . $this->path ."/". $this->name.".".$this->extension;
     }
 
     /**
-     * @return integer
+     * @return int
      */
-    public function getFileSize(){
+    public function getFileSize():int {
         return $this->size;
     }
 
     /**
      * @param string $name
-     * @return $this
+     * @return FileResource
      */
-    public function setNewName($name){
+    public function setNewName(string $name):FileResource{
         $this->newName = $name;
         return $this;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getNewName()
+    public function getNewName():?string
     {
         return $this->newName;
     }
 
     /**
      * @param string $extension
-     * @return $this
+     * @return FileResource
      */
-    public function setNewExtension($extension){
+    public function setNewExtension(string $extension):FileResource{
         $this->newExtension = $extension;
         return $this;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getNewExtension(){
+    public function getNewExtension():?string {
         return $this->newExtension;
     }
 
     /**
      * @param string $path
-     * @return $this
+     * @return FileResource
      */
-    public function setNewPath($path){
+    public function setNewPath(string $path):FileResource{
         $this->newPath = $path;
         return $this;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getNewPath(){
+    public function getFileNewDirectoryPath():?string {
         return $this->newPath;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getNewPathToFile(){
+    public function getFileNewPath():?string {
 
         if($this->newPath == null){
             return null;
@@ -214,50 +208,68 @@ class FileResource
     }
 
     /**
-     * @param FileAdditionalInfo $info
-     * @return $this
+     * @param FileAdditionalInfo|null $info
+     * @return FileResource
      */
-    public function setAdditionalInfo(FileAdditionalInfo $info = null)
+    public function setAdditionalInfo(FileAdditionalInfo $info = null):FileResource
     {
         $this->additionalInfo = $info;
         return $this;
     }
 
-    public function getAdditionalInfo()
+    /**
+     * @return FileAdditionalInfo
+     */
+    public function getAdditionalInfo():FileAdditionalInfo
     {
         return $this->additionalInfo;
     }
 
-    public function getDbId()
+    /**
+     * @return string|null
+     */
+    public function getDbId():?string
     {
         return $this->additionalInfo->getDbId();
     }
 
-    public function getDbName()
+    /**
+     * @return string|null
+     */
+    public function getDbName():?string
     {
         return $this->additionalInfo->getName();
     }
 
-    public function getDbNameExtension()
+    /**
+     * @return string|null
+     */
+    public function getDbNameExtension():?string
     {
         return $this->additionalInfo->getName() . "." . $this->getRealExtension();
     }
 
-    public function getFileDescription()
-    {
-        return $this->additionalInfo->getDescription();
-    }
-
-    public function getFileTitle()
+    /**
+     * @return string|null
+     */
+    public function getFileDescription():?string
     {
         return $this->additionalInfo->getDescription();
     }
 
     /**
-     * @param $string
-     * @return mixed
+     * @return string|null
      */
-    public function parseString($string)
+    public function getFileTitle():?string
+    {
+        return $this->additionalInfo->getDescription();
+    }
+
+    /**
+     * @param string $string
+     * @return string
+     */
+    public function parseString(string $string):string
     {
 
         $string = str_replace("{realName}", $this->getName(), $string);

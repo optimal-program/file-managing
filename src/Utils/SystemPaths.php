@@ -1,26 +1,37 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\Utils;
 
 class SystemPaths
 {
-    public static function getScriptPath()
+    /**
+     * @return string
+     */
+    public static function getScriptPath():string
     {
-        print_r(__DIR__);
         return substr(self::getAbsoluteScriptName(), 0, strrpos(self::getAbsoluteScriptName(), "/"));
     }
 
-    public static function getAbsoluteScriptName()
+    /**
+     * @return string
+     */
+    public static function getAbsoluteScriptName():string
     {
         return str_replace("\\", "/", $_SERVER[ "SCRIPT_FILENAME" ]);
     }
 
-    public static function getRelativeScriptName()
+    /**
+     * @return string
+     */
+    public static function getRelativeScriptName():string
     {
         return str_replace("\\", "/", $_SERVER[ "SCRIPT_NAME" ]);
     }
 
-    public static function getBaseUrl()
+    /**
+     * @return string
+     */
+    public static function getBaseUrl():string
     {
         return SystemPaths::getUrlDomain() . substr(self::getRelativeScriptName(), 0,
                 strrpos(self::getRelativeScriptName(), "/"));
@@ -29,7 +40,7 @@ class SystemPaths
     /**
      * @return string
      */
-    public static function getUrlDomain()
+    public static function getUrlDomain():string
     {
         $url = self::fullUrl($_SERVER);
         $url = str_replace("//", "*", $url);
@@ -41,11 +52,11 @@ class SystemPaths
     }
 
     /**
-     * @param array $s
+     * @param string $s
      * @param bool $use_forwarded_host
      * @return string
      */
-    public static function fullUrl($s, $use_forwarded_host = false)
+    public static function fullUrl(string $s,bool $use_forwarded_host = false):string
     {
         $ssl = (!empty($s[ 'HTTPS' ]) && $s[ 'HTTPS' ] == 'on') ? true : false;
         $sp = strtolower($s[ 'SERVER_PROTOCOL' ]);

@@ -13,10 +13,16 @@ use Optimal\FileManaging\FileCommander;
 final class ImagickResource extends ImageManageResource
 {
 
+    /**
+     * ImagickResource constructor.
+     * @param ImageResource $image
+     * @param FileCommander $commander
+     * @throws \ImagickException
+     */
     function __construct(ImageResource $image, FileCommander $commander)
     {
         parent::__construct($image, $commander);
-        $this->resource = new \Imagick($image->getPathToFile());
+        $this->resource = new \Imagick($image->getFilePath());
     }
 
     /**

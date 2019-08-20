@@ -1,13 +1,6 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 16.02.2018
- * Time: 21:08
- */
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\Utils;
-
 
 class FileAdditionalInfo
 {
@@ -26,70 +19,72 @@ class FileAdditionalInfo
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
-    public function getDbId()
+    public function getDbId():?int
     {
         return $this->dbId;
     }
 
     /**
-     * @param mixed $dbId
+     * @param int $dbId
+     * @return FileAdditionalInfo
      */
-    public function setDbId($dbId)
+    public function setDbId(int $dbId):FileAdditionalInfo
     {
         $this->dbId = $dbId;
+        return $this;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getName()
+    public function getName():string
     {
         return $this->name;
     }
 
     /**
-     * @param $name
-     * @return $this
+     * @param string $name
+     * @return FileAdditionalInfo
      */
-    public function setName($name)
+    public function setName(string $name):FileAdditionalInfo
     {
         $this->name = $name;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getTitle()
+    public function getTitle():string
     {
         return $this->title;
     }
 
     /**
-     * @param $title
-     * @return $this
+     * @param string $title
+     * @return FileAdditionalInfo
      */
-    public function setTitle($title)
+    public function setTitle(string $title):FileAdditionalInfo
     {
         $this->title = $title;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getDescription()
+    public function getDescription():string
     {
         return $this->description;
     }
 
     /**
-     * @param $description
-     * @return $this
+     * @param string $description
+     * @return FileAdditionalInfo
      */
-    public function setDescription($description)
+    public function setDescription(string $description):FileAdditionalInfo
     {
         $this->description = $description;
         return $this;

@@ -23,13 +23,13 @@ final class GDResource extends ImageManageResource
         switch ($this->image->getExtension()) {
             case "jpg":
             case "jpeg":
-                $resource = imagecreatefromjpeg($this->image->getPathToFile());
+                $resource = imagecreatefromjpeg($this->image->getFilePath());
                 break;
             case "png":
-                $resource = imagecreatefrompng($this->image->getPathToFile());
+                $resource = imagecreatefrompng($this->image->getFilePath());
                 break;
             case "gif":
-                $resource = imagecreatefromgif($this->image->getPathToFile());
+                $resource = imagecreatefromgif($this->image->getFilePath());
                 break;
         }
 
@@ -40,7 +40,7 @@ final class GDResource extends ImageManageResource
     }
 
     /**
-     * @param $resource
+     * @param resource $resource
      * @return bool
      */
     private function isValidGD($resource){
@@ -53,7 +53,7 @@ final class GDResource extends ImageManageResource
     }
 
     /**
-     * @param $resource
+     * @param resource $resource
      * @return bool
      */
     public function setGDResource($resource){
@@ -65,17 +65,17 @@ final class GDResource extends ImageManageResource
     }
 
     /**
-     * @return bool|resource
+     * @return resource
      */
     public function getGDResource(){
         return $this->resource;
     }
 
     /**
-     * @param $degree
-     * @throws \Exception
+     * @param int $degree
+     * @throws GDException
      */
-    public function rotate($degree)
+    public function rotate(int $degree):void
     {
         if (isset($degree) && is_numeric($degree)) {
             $rotate = imagerotate($this->resource, $degree, 0);
@@ -91,7 +91,7 @@ final class GDResource extends ImageManageResource
      * @param int $x
      * @param int $y
      */
-    protected function resampleImg($width, $height, $x = -1, $y = -1)
+    protected function reSampleImg(int $width,int $height,int $x = -1,int $y = -1):void
     {
 
         if ($x >= 0 || $y >= 0) {
@@ -133,7 +133,7 @@ final class GDResource extends ImageManageResource
      * @param int $width
      * @param int $height
      */
-    public function transparentBackground($width, $height)
+    public function transparentBackground(int $width,int $height):void
     {
         $resultPic = imagecreatetruecolor($width, $height);
 
@@ -162,7 +162,7 @@ final class GDResource extends ImageManageResource
         $this->image->setNewExtension("png");
     }
 
-    public function cropTransparentBorders()
+    public function cropTransparentBorders():void
     {
 
         // Get the width and height
@@ -174,11 +174,11 @@ final class GDResource extends ImageManageResource
         $bottom = 0;
         $left = 0;
         $right = 0;
-        $bgcolor = imagecolorat($this->resource, $top, $left); // This works with any color, including transparent backgrounds
+        $bgColor = imagecolorat($this->resource, $top, $left); // This works with any color, including transparent backgrounds
         //top
         for (; $top < $height; ++$top) {
             for ($x = 0; $x < $width; ++$x) {
-                if (imagecolorat($this->resource, $x, $top) != $bgcolor) {
+                if (imagecolorat($this->resource, $x, $top) != $bgColor) {
                     break 2; //out of the 'top' loop
                 }
             }
@@ -186,7 +186,7 @@ final class GDResource extends ImageManageResource
         //bottom
         for (; $bottom < $height; ++$bottom) {
             for ($x = 0; $x < $width; ++$x) {
-                if (imagecolorat($this->resource, $x, $height - $bottom - 1) != $bgcolor) {
+                if (imagecolorat($this->resource, $x, $height - $bottom - 1) != $bgColor) {
                     break 2; //out of the 'bottom' loop
                 }
             }
@@ -194,7 +194,7 @@ final class GDResource extends ImageManageResource
         //left
         for (; $left < $width; ++$left) {
             for ($y = 0; $y < $height; ++$y) {
-                if (imagecolorat($this->resource, $left, $y) != $bgcolor) {
+                if (imagecolorat($this->resource, $left, $y) != $bgColor) {
                     break 2; //out of the 'left' loop
                 }
             }
@@ -202,18 +202,17 @@ final class GDResource extends ImageManageResource
         //right
         for (; $right < $width; ++$right) {
             for ($y = 0; $y < $height; ++$y) {
-                if (imagecolorat($this->resource, $width - $right - 1, $y) != $bgcolor) {
+                if (imagecolorat($this->resource, $width - $right - 1, $y) != $bgColor) {
                     break 2; //out of the 'right' loop
                 }
             }
         }
 
-        //copy the contents, excluding the border
         $this->cropImage($left, $top, $width - ($left + $right), $height - ($top + $bottom));
     }
 
 
-    public function show()
+    public function show():void
     {
 
         $extension = $this->image->getExtension();
@@ -241,28 +240,32 @@ final class GDResource extends ImageManageResource
     }
 
     /**
-     * @param null $myTarget
-     * @return mixed|void
+     * @param string|null $myTarget
      * @throws \Optimal\FileManaging\Exception\DeleteFileException
      * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
      * @throws \Optimal\FileManaging\Exception\FileException
      */
-    public function save($myTarget = null){
+    public function save(?string $myTarget = null):void {
 
-        if($this->image->getPath() == $this->image->getNewPath()){
+        if($this->image->getFileDirectoryPath() == $this->image->getFileNewDirectoryPath()){
             $pom = "_";
         } else {
             $pom = "";
         }
 
-        $this->commander->setPath($this->image->getNewPath());
+        if($myTarget != null){
+            $this->commander->setPath($myTarget);
+            $this->image->setNewPath($myTarget);
+        } else {
+            $this->commander->setPath($this->image->getFileNewDirectoryPath());
+        }
 
-        $filesWithSameName = $this->commander->searchFiles($this->image->getName());
+        $filesWithSameName = $this->commander->searchImages($this->image->getName());
 
         if (!empty($filesWithSameName)) {
             foreach ($filesWithSameName as $file) {
                 if ($file->getExtension() != $this->image->getExtension()) {
-                    $this->commander->removeFile($file->getName(), [$file->getExtension()]);
+                    $this->commander->removeFile($file->getNameExtension());
                 }
             }
         }
@@ -273,8 +276,8 @@ final class GDResource extends ImageManageResource
             $extension = $this->image->getExtension();
         }
 
-        $fileDestination = $pom.$this->image->getPathToFile();
-        $finalDestination = $this->image->getPathToFile();
+        $fileDestination = $pom.$this->image->getFilePath();
+        $finalDestination = $this->image->getFilePath();
 
         switch ($extension) {
             case "jpg":
@@ -292,6 +295,8 @@ final class GDResource extends ImageManageResource
             $this->commander->removeFile($this->image->getNameExtension());
             rename($fileDestination,$finalDestination);
         }
+
+        $this->commander->setPath($this->image->getFilePath());
 
     }
 

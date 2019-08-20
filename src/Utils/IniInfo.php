@@ -1,10 +1,4 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 08.11.2017
- * Time: 15:34
- */
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\Utils;
 
@@ -25,7 +19,11 @@ class IniInfo
         self::$maxFileUploads = ini_get('max_file_uploads');
     }
 
-    public static function toBytes($size){
+    /**
+     * @param string $size
+     * @return int
+     */
+    public static function toBytes(string $size):int {
 
         switch (substr($size, -2, 2)){
             case 'Gb':
@@ -66,15 +64,24 @@ class IniInfo
 
     }
 
-    public static function getPostMaxSize(){
+    /**
+     * @return int
+     */
+    public static function getPostMaxSize():int {
         return self::$PostMaxSize;
     }
 
-    public static function getMaxFileSize(){
+    /**
+     * @return int
+     */
+    public static function getMaxFileSize():int {
         return self::$UploadMaxFileSize;
     }
 
-    public static function getMaxFilesCount(){
+    /**
+     * @return int
+     */
+    public static function getMaxFilesCount():int {
         return self::$maxFileUploads;
     }
 

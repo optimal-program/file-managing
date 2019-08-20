@@ -1,13 +1,6 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 20.08.2019
- * Time: 14:48
- */
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\resources;
-
 
 use Optimal\FileManaging\FileCommander;
 
@@ -35,7 +28,7 @@ abstract class ImageManageResource
      * @param int $new_width
      * @param int $new_height
      */
-    protected function imageResize($new_width = 0, $new_height = 0) {
+    protected function imageResize(int $new_width = 0,int $new_height = 0) {
 
         if ($new_height != 0) {
             $prc = (100 * $new_height) / $this->image->getHeight();
@@ -58,12 +51,12 @@ abstract class ImageManageResource
      * @param int $y
      * @return mixed
      */
-    abstract protected function resampleImg($width, $height, $x = -1, $y = -1);
+    abstract protected function reSampleImg(int $width,int $height,int $x = -1,int $y = -1);
 
     /**
      * @return ImageResource
      */
-    public function getImageResource(){
+    public function getImageResource():ImageResource{
         return $this->image;
     }
 
@@ -76,7 +69,7 @@ abstract class ImageManageResource
     }
 
     /**
-     * @method - rotate image into correct angle
+     *
      */
     public function autoRotate()
     {
@@ -107,20 +100,20 @@ abstract class ImageManageResource
     /**
      * @param int $x
      * @param int $y
-     * @param $width
-     * @param $height
+     * @param int $width
+     * @param int $height
      */
-    public function cropImage($x, $y, $width, $height) {
+    public function cropImage(int $x,int $y,int $width,int $height) {
         $this->resampleImg($width, $height, $x, $y);
     }
 
     /**
      * @param int $width
      * @param int $height
-     * @param string $method [crop,supplement]
+     * @param string $method
      * @throws \Exception
      */
-    public function resize($width = 0, $height = 0, $method = self::CROP_TYPE_CROP)
+    public function resize(int $width = 0,int $height = 0,string $method = self::CROP_TYPE_CROP)
     {
 
         if ($width != 0 && $height != 0) {
@@ -245,25 +238,17 @@ abstract class ImageManageResource
 
     /**
      * @param int $degree
-     * @return mixed
      */
-    abstract public function rotate($degree);
+    abstract public function rotate(int $degree):void ;
 
     /**
      * @param int $width
      * @param int $height
-     * @return mixed
      */
-    abstract public function transparentBackground($width, $height);
+    abstract public function transparentBackground(int $width,int $height):void;
 
-    /**
-     * @return mixed
-     */
-    abstract public function show();
+    abstract public function show():void;
 
-    /**
-     * @return mixed
-     */
-    abstract public function save();
+    abstract public function save():void;
 
 }

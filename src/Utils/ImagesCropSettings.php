@@ -1,13 +1,6 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 10.11.2017
- * Time: 18:24
- */
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\Utils;
-
 
 class ImagesCropSettings
 {
@@ -36,68 +29,76 @@ class ImagesCropSettings
     }
 
     /**
-     * @return null
+     * @return float|null
      */
-    public function getRatio()
+    public function getRatio():?float
     {
         return $this->ratio;
     }
 
     /**
-     * @param null $ratioW
-     * @param null $ratioH
+     * @param float $ratioW
+     * @param float $ratioH
+     * @return $this
      */
-    public function setRatio($ratioW, $ratioH)
+    public function setRatio(float $ratioW, float $ratioH)
     {
         $this->ratio = "".$ratioW.":".$ratioH."";
+        return $this;
     }
 
     /**
      * @return int
      */
-    public function getMinWidth()
+    public function getMinWidth():int
     {
         return $this->minWidth;
     }
 
     /**
      * @param int $minWidth
+     * @return $this
      */
-    public function setMinWidth($minWidth)
+    public function setMinWidth(int $minWidth)
     {
         $this->minWidth = $minWidth;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getMaxWidth()
-    {
-        return $this->maxWidth;
-    }
-
-    /**
-     * @param mixed $maxWidth
-     */
-    public function setMaxWidth($maxWidth)
-    {
-        $this->maxWidth = $maxWidth;
+        return $this;
     }
 
     /**
      * @return int
      */
-    public function getMinHeight()
+    public function getMaxWidth():int
+    {
+        return $this->maxWidth;
+    }
+
+    /**
+     * @param int $maxWidth
+     * @return $this
+     */
+    public function setMaxWidth(int $maxWidth)
+    {
+        $this->maxWidth = $maxWidth;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMinHeight():int
     {
         return $this->minHeight;
     }
 
     /**
      * @param int $minHeight
+     * @return $this
      */
-    public function setMinHeight($minHeight)
+    public function setMinHeight(int $minHeight)
     {
         $this->minHeight = $minHeight;
+        return $this;
     }
 
     /**
@@ -119,81 +120,91 @@ class ImagesCropSettings
     /**
      * @return bool
      */
-    public function isResizable()
+    public function isResizable():bool
     {
         return $this->resizable;
     }
 
     /**
      * @param bool $resizable
+     * @return $this
      */
-    public function setResizable($resizable)
+    public function setResizable(bool $resizable)
     {
         $this->resizable = $resizable;
+        return $this;
     }
 
     /**
      * @return int
      */
-    public function getX1()
+    public function getX1(): int
     {
         return $this->x1;
     }
 
     /**
      * @param int $x1
+     * @return $this
      */
-    public function setX1($x1)
+    public function setX1(int $x1)
     {
         $this->x1 = $x1;
+        return $this;
     }
 
     /**
      * @return int
      */
-    public function getY1()
+    public function getY1(): int
     {
         return $this->y1;
     }
 
     /**
      * @param int $y1
+     * @return $this
      */
-    public function setY1($y1)
+    public function setY1(int $y1)
     {
         $this->y1 = $y1;
+        return $this;
     }
 
     /**
      * @return int
      */
-    public function getX2()
+    public function getX2(): int
     {
         return $this->x2;
     }
 
     /**
      * @param int $x2
+     * @return $this
      */
-    public function setX2($x2)
+    public function setX2(int $x2)
     {
         $this->x2 = $x2;
+        return $this;
     }
 
     /**
      * @return int
      */
-    public function getY2()
+    public function getY2(): int
     {
         return $this->y2;
     }
 
     /**
      * @param int $y2
+     * @return $this
      */
-    public function setY2($y2)
+    public function setY2(int $y2)
     {
         $this->y2 = $y2;
+        return $this;
     }
 
 }
