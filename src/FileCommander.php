@@ -92,7 +92,7 @@ class FileCommander
      * @param string $name
      * @throws DirectoryNotFoundException
      */
-    public function moveToDir(string $name)
+    public function moveToDirectory(string $name)
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -151,7 +151,7 @@ class FileCommander
             }
 
             if ($moveToDir) {
-                $this->moveToDir($dirName);
+                $this->moveToDirectory($dirName);
             }
 
         }

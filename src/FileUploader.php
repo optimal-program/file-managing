@@ -1,214 +1,192 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging;
 
-use App\Core\Files\Exceptions\DirectoryNotFoundException;
-use App\Core\Files\Exceptions\UploadFileException;
-use App\Core\Files\Utils\ImagesResizeSettings;
-use App\Core\Files\Utils\UploadedFilesLimits;
+use Optimal\FileManaging\Exception\DirectoryException;
+use Optimal\FileManaging\Exception\DirectoryNotFoundException;
+use Optimal\FileManaging\Exception\UploadFileException;
+use Optimal\FileManaging\Utils\FilesTypes;
+use Optimal\FileManaging\Utils\ImagesCropSettings;
+use Optimal\FileManaging\Utils\ImagesResizeSettings;
+use Optimal\FileManaging\Utils\UploadedFilesLimits;
 
-//todo: refactor add crop feature into file uploader
+class FileUploader {
 
-class FileUploader
-{
     private static $instance = null;
 
     private $commander;
-    private $uploadLimits;
-    private $resizeSettings;
-    //private $cropSettings;
-
-    private $tempDir;
-    private $thumbs = [];
+    private $imagesManager;
+    private $imagesResourceType;
 
     private $messages;
-    private $errors = [];
-    private $success = [];
 
-    private $postFiles = [];
-    private $uploadedFiles = [];
+    private $targetDestination;
+    private $temporaryDestination;
 
-    private $imagesSettings = [];
+    private $imagesCropSettings;
+    private $resizeImagesSettings;
+    private $imagesThumbsSettings;
+    private $uploadLimits;
+    private $autoRotateImages;
 
-    public static function init()
-    {
-        if (self::$instance == null) {
+    private $_FILES;
+
+    private $successMessages;
+    private $errorMessages;
+
+    private $uploadedFiles;
+
+    public function init(){
+        if(self::$instance == null){
             self::$instance = new FileUploader();
         }
-
         return self::$instance;
     }
 
-    public function setMessages($msgs = [])
-    {
-        $this->messages = $msgs;
-    }
+    private function __construct(){
 
-    private function __construct()
-    {
+        $this->imagesCropSettings = null;
         $this->uploadLimits = new UploadedFilesLimits();
+
+        $this->resizeImagesSettings = null;
+        $this->imagesThumbsSettings = [];
+
         $this->commander = new FileCommander();
-        $this->resizeSettings = new ImagesResizeSettings();
+        $this->imagesManager = new ImagesManager();
 
-        $this->messages = [
-            "tooBig" => "File: \"{fileFull}\" is too big",
-            "notFull" => "File: \"{fileFull}\" was uploaded partially",
-            "otherProblem" => "Some problem with uploaded file: \"{fileFull}\"",
-            "notAllowed" => "Extension: {fileExtension} of file: \"{fileName}\" is not allowed",
-            "isEmpty" => "File: \"{fileFull}\" is empty",
-            "isTooLarge" => "The size of file: \"{fileFull}\" is higher then allowed",
-            "wrongName" => "Name of file: \"{fileFull}\" contains suspicious characters",
-            "success" => "File: \"{fileFull}\" was successfully uploaded",
-            "nonSuccess" => "File: \"{fileFull}\" wasn't successfully uploaded"
-        ];
+        $this->_FILES = [];
 
-        $files = $_FILES;
-
-        foreach ($files as $inputName => $filesItems) {
-
+        foreach ($_FILES as $inputName => $filesItems) {
             if (is_array($filesItems["name"])) {
                 foreach ($filesItems as $param => $values) {
                     foreach ($values as $key => $value) {
-                        $this->postFiles[$inputName][$key][$param] = $value;
+                        $this->_FILES[$inputName][$key][$param] = $value;
                         if ($param == "name") {
-                            $this->postFiles[$inputName][$key]["only_name"] = strtolower(pathinfo($this->postFiles[$inputName][$key][$param], PATHINFO_FILENAME));
-                            $this->postFiles[$inputName][$key]["extension"] = strtolower(pathinfo($this->postFiles[$inputName][$key][$param], PATHINFO_EXTENSION));
+                            $this->_FILES[$inputName][$key]["only_name"] = strtolower(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_FILENAME));
+                            $this->_FILES[$inputName][$key]["only_extension"] = strtolower(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_EXTENSION));
                         }
                     }
                 }
             } else {
                 foreach ($filesItems as $param => $value) {
-                    $this->postFiles[$inputName][0][$param] = $value;
+                    $this->_FILES[$inputName][0][$param] = $value;
                     if ($param == "name") {
-                        $this->postFiles[$inputName][0]["only_name"] = strtolower(pathinfo($this->postFiles[$inputName][0][$param], PATHINFO_FILENAME));
-                        $this->postFiles[$inputName][0]["extension"] = strtolower(pathinfo($this->postFiles[$inputName][0][$param], PATHINFO_EXTENSION));
+                        $this->_FILES[$inputName][0]["only_name"] = strtolower(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_FILENAME));
+                        $this->_FILES[$inputName][0]["only_extension"] = strtolower(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_EXTENSION));
                     }
                 }
             }
         }
 
-        $this->uploadedFiles = ["images" => [], "files" => []];
-        //$this->cropSettings = new ImagesCropSettings();
+        $this->uploadedFiles = ["images"=>[],"files"=>[]];
+        $this->successMessages = [];
+        $this->errorMessages = [];
+
+        $this->messages = [
+            "tooBig" => "Soubor: '{fileFull}' je příliš velký",
+            "notFull" => "Soubor: '{fileFull}' byl nahrán pouze částečně",
+            "otherProblem" => "S nahrávaným souborem: '{fileFull}' nastal nějaký problém",
+            "notAllowed" => "Přípona: {fileExtension} souboru: '{fileName}' není povolena",
+            "isEmpty" => "Soubor: '{fileFull}' je prázdný",
+            "isTooLarge" => "Velikost souborů: '{fileFull}' je větší, než je povoleno",
+            "wrongName" => "Název souboru: '{fileFull}' obsahuje podezřelé znaky",
+            "success" => "Soubor: '{fileFull}' byl úspěšně nahrán",
+            "nonSuccess" => "Soubor: '{fileFull}' nebyl úspěšně nahrán"
+        ];
+
+        $this->imagesResourceType = ImagesManager::RESOURCE_TYPE_GD;
     }
 
+    /**
+     * @param array $messages
+     */
+    public function setMessages(array $messages) {
+        $this->messages = $messages;
+    }
+
+    /**
+     * @param $msg
+     * @param $file
+     * @return mixed
+     */
     private function parseMessage($msg, $file)
     {
 
         $msg = str_replace("{fileName}", $file["only_name"], $msg);
-        $msg = str_replace("{fileExtension}", $file["extension"], $msg);
-        $msg = str_replace("{fileFull}", $file["only_name"] . "." . $file["extension"], $msg);
+        $msg = str_replace("{fileExtension}", $file["only_extension"], $msg);
+        $msg = str_replace("{fileFull}", $file["only_name"] . "." . $file["only_extension"], $msg);
         $msg = str_replace("{fileSize}", $file["size"], $msg);
         return $msg;
     }
 
     /**
-     * @param $path
-     * @throws DirectoryNotFoundException
+     * @param ImagesResizeSettings $settings
      */
-    public function setTempDirectory($path)
-    {
-        $cmd = new FileCommander();
-        try {
-            $cmd->setPath($path);
-        } catch (DirectoryNotFoundException $e) {
-            throw $e;
-        }
-        $this->tempDir = $cmd->getActualPath() . "/";
+    public function setImagesResizeSettings(ImagesResizeSettings $settings){
+        $this->resizeImagesSettings = $settings;
     }
 
-    /**
-     * @param $folder
-     * @throws DirectoryNotFoundException
-     */
-    public function setUploadDestination($folder)
-    {
-        try {
-            $this->commander->setPath($folder);
-        } catch (DirectoryNotFoundException $e) {
-            throw $e;
-        }
+    /* TODO *
+    public function setImagesCropSettings(ImagesCropSettings $settings){
+        $this->imagesCropSettings = $settings;
     }
+    */
 
     /**
      * @param UploadedFilesLimits $limits
      */
-    public function setUploadLimits(UploadedFilesLimits $limits)
-    {
+    public function setUploadLimits(UploadedFilesLimits $limits){
         $this->uploadLimits = $limits;
     }
 
     /**
-     * @param $destination
-     * @param ImagesResizeSettings $resize
-     * @throws DirectoryNotFoundException
+     * @param string $directory
+     * @throws Exception\DirectoryNotFoundException
      */
-    public function addImageThumb($destination, ImagesResizeSettings $resize/*, ImagesCropSettings $crop = null*/)
-    {
-        $cmd = new FileCommander();
-        try {
-            $cmd->setPath($destination);
-        } catch (DirectoryNotFoundException $e) {
-            throw $e;
-        }
-        array_push($this->thumbs, ["destination" => $cmd->getActualPath(), "resize" => $resize/*, "crop" => $crop*/]);
+    public function setTemporaryDirectory(string $directory){
+        $this->commander->checkPath($directory);
+        $this->temporaryDestination = $directory;
     }
 
     /**
-     * @param ImagesResizeSettings $resize
+     * @param string $directory
+     * @throws Exception\DirectoryNotFoundException
      */
-    public function setImagesResizeLimits(ImagesResizeSettings $resize)
-    {
-        $this->resizeSettings = $resize;
-    }
-
-    /*
-    public function setImagesCropLimits(ImagesCropSettings $crop){
-        $this->cropSettings = $crop;
-    }
-    */
-
-    public function getPostFiles($name)
-    {
-        if ($name != "") {
-            return $this->postFiles[$name];
-        }
-        return null;
-    }
-
-    public function autoRotateImage($rotate = true)
-    {
-        $this->imagesSettings["autorotate"] = $rotate;
-    }
-
-    public function uploadNewFile($file, $newFileName = "", $overwrite = true)
-    {
-
-        if ($this->tempDir != "") {
-            if ($this->commander->getActualPath() != null) {
-
-                $fileToUpload = [];
-
-                if ($newFileName != '') {
-                    $fileToUpload['new_name'] = $newFileName;
-                }
-
-                $fileToUpload['overwrite'] = $overwrite;
-
-                $this->upload($file, $fileToUpload);
-
-            } else {
-                throw new UploadFileException("No destination directory set!");
-            }
-        } else {
-            throw  new UploadFileException("No temporary directory defined!");
-        }
+    public function setTargetDirectory(string $directory){
+        $this->commander->checkPath($directory);
+        $this->targetDestination = $directory;
     }
 
     /**
-     * @param string $name
+     * @param string $destination
+     * @param ImagesResizeSettings $resizeSettings
+     * @throws Exception\DirectoryNotFoundException
+     */
+    public function addImagesThumbSettings(string $destination, ImagesResizeSettings $resizeSettings/*TODO, ImagesCropSettings $cropSettings*/){
+        $this->commander->checkPath($destination);
+        array_push($this->imagesThumbsSettings, ["destination"=>$destination,"resize"=>$resizeSettings]);
+    }
+
+    /**
+     * @param bool $rotate
+     */
+    public function autoRotateImages(bool $rotate = true)
+    {
+        $this->autoRotateImages = $rotate;
+    }
+
+    /**
+     * @param string $resource
+     */
+    public function setImagesManageResourceType(string $resource = ImagesManager::RESOURCE_TYPE_GD){
+        $this->imagesResourceType = $resource;
+    }
+
+    /**
+     * @param string $inputName
      * @return bool
      */
-    public function isPostFile($name = "")
+    public function isPostFile(string $inputName)
     {
 
         if (empty($this->postFiles)) {
@@ -217,10 +195,8 @@ class FileUploader
 
         foreach ($this->postFiles as $key => $val) {
 
-            if ($name != "") {
-                if ($key != $name) {
-                    continue;
-                }
+            if ($key != $inputName) {
+                continue;
             }
 
             if ($val[0]["error"] == 4) {
@@ -231,7 +207,98 @@ class FileUploader
         return true;
     }
 
-    private function upload($file, $fileToUpload)
+    /**
+     * @param string $inputName
+     * @return int
+     */
+    public function countInputFiles(string $inputName){
+        if(!isset($this->_FILES[$inputName])){
+            return 0;
+        }
+        return count($this->_FILES[$inputName]);
+    }
+
+    /**
+     * @param string $inputName
+     * @param int $key
+     * @param string|null $newFileName
+     * @param bool $overwrite
+     * @throws DirectoryException
+     * @throws DirectoryNotFoundException
+     * @throws Exception\CreateDirectoryException
+     * @throws Exception\DeleteFileException
+     * @throws Exception\FileException
+     * @throws Exception\FileNotFoundException
+     * @throws Exception\GDException | \ImagickException
+     * @throws UploadFileException
+     */
+    public function uploadFile(string $inputName,int $key,?string $newFileName = null,bool $overwrite = true)
+    {
+
+        try {
+            $this->commander->checkPath($this->temporaryDestination);
+            $this->commander->checkPath($this->targetDestination);
+        } catch (DirectoryNotFoundException $e) {
+            throw new DirectoryException("Temporary or target directory is not defined");
+        }
+
+        if($this->checkFile($this->_FILES[$inputName][$key])) {
+
+            $file = $this->_FILES[$inputName][$key];
+            $newName = uniqid();
+
+            if ($newFileName != null) {
+                $newName = $newFileName;
+            }
+
+            $this->commander->setPath($this->targetDestination);
+
+            if($overwrite){
+                $i = 1;
+                if($this->commander->fileExists($newName, $file["only_extension"])){
+                    while($this->commander->fileExists($newName."_".$i, $file["only_extension"])){
+                        $i++;
+                    }
+                }
+                $newName = $newName."_".$i;
+            }
+
+            $this->moveFile($this->_FILES[$inputName][$key], $newName);
+        }
+    }
+
+    /**
+     * @param string $inputName
+     * @param array $newFileNames
+     * @param bool $overwrite
+     * @throws DirectoryException
+     * @throws DirectoryNotFoundException
+     * @throws Exception\CreateDirectoryException
+     * @throws Exception\DeleteFileException
+     * @throws Exception\FileException
+     * @throws Exception\FileNotFoundException
+     * @throws Exception\GDException | \ImagickException
+     * @throws UploadFileException
+     */
+    public function uploadFiles(string $inputName, array $newFileNames = [], bool $overwrite = true){
+
+        if(!empty($newFileNames)) {
+            if (count($this->_FILES[$inputName]) != count($newFileNames)) {
+                throw new \Exception("count of newFileNames is not same as count of files");
+            }
+        }
+
+        foreach ($this->_FILES[$inputName] as $key => $data){
+            $this->uploadFile($inputName, $key, !empty($newFileNames) ? $newFileNames[$key] : uniqid(), $overwrite);
+        }
+
+    }
+
+    /**
+     * @param array $file
+     * @return bool
+     */
+    private function checkFile(array $file):bool
     {
 
         switch ($file['error']) {
@@ -239,188 +306,136 @@ class FileUploader
                 break;
             case 1:
             case 2:
-                array_push($this->errors, $this->parseMessage($this->messages["tooBig"], $file));
-                return;
+                array_push($this->errorMessages, $this->parseMessage($this->messages["tooBig"], $file));
+                return false;
                 break;
             case 3:
-                array_push($this->errors, $this->parseMessage($this->messages["notFull"], $file));
-                return;
+                array_push($this->errorMessages, $this->parseMessage($this->messages["notFull"], $file));
+                return false;
                 break;
             default:
-                array_push($this->errors, $this->parseMessage($this->messages["otherProblem"], $file));
-                return;
+                array_push($this->errorMessages, $this->parseMessage($this->messages["otherProblem"], $file));
+                return false;
                 break;
         }
 
-        if ($this->checkSize($file)) {
-
-            $fileToUpload = $this->checkName($file, $fileToUpload);
-
-            if ($fileToUpload != null) {
-                $this->moveFile($file, $fileToUpload);
-            }
-
-        }
-
-    }
-
-    private function checkSize($file)
-    {
         if ($file['size'] == 0) {
-            array_push($this->errors, $this->parseMessage($this->messages["isEmpty"], $file));
+            array_push($this->errorMessages, $this->parseMessage($this->messages["isEmpty"], $file));
             return false;
         } elseif ($file['size'] > $this->uploadLimits->getMaxFileSize()) {
-            array_push($this->errors, $this->parseMessage($this->messages["isTooLarge"], $file));
+            array_push($this->errorMessages, $this->parseMessage($this->messages["isTooLarge"], $file));
             return false;
-        } else {
-            return true;
-        }
-    }
-
-    private function checkName($file, $fileToUpload)
-    {
-
-        if (!preg_match("/php|phtml[0-9]*?/i", $file["extension"])) {
-
-            if (!in_array($file["extension"], UploadedFilesLimits::DISALLOWED)) {
-                if (in_array($file["extension"], $this->uploadLimits->getAllowedExtensions())) {
-
-                    if (!preg_match("/\/|\\|&|\||\?|\*/i", $file["only_name"])) {
-
-                        if ($fileToUpload["new_name"] != '') {
-                            $fileToUpload["extension"] = $file["extension"];
-                        } else {
-                            $newName = uniqid();
-                            $fileToUpload["new_name"] = $newName;
-                            $fileToUpload["extension"] = $file["extension"];
-                        }
-
-                        if ($fileToUpload['overwrite'] == false) {
-                            if (file_exists($this->commander->getActualPath() . "/" . $fileToUpload["new_name"])) {
-
-                                $newName = $fileToUpload["new_name"];
-                                $i = 1;
-
-                                while (file_exists($this->commander->getActualPath() . "/" . $newName . "_" . $i . "." . $file["extension"])) {
-                                    $i++;
-                                }
-
-                                $fileToUpload["new_name"] = $newName . "_" . $i . "";
-
-                            }
-                        }
-
-                        $fileToUpload["full"] = $fileToUpload["new_name"] . "." . $fileToUpload["extension"];
-                        return $fileToUpload;
-
-                    } else {
-                        array_push($this->errors, $this->parseMessage($this->messages["wrongName"], $file));
-                        array_push($this->errors, "Soubor obsahuje podezřelé znaky!!!");
-                    }
-
-                } else {
-                    array_push($this->errors, $this->parseMessage($this->messages["notAllowed"], $file));
-                }
-            } else {
-                array_push($this->errors, $this->parseMessage($this->messages["notAllowed"], $file));
-            }
-        } else {
-            array_push($this->errors, $this->parseMessage($this->messages["notAllowed"], $file));
         }
 
-        return null;
+        if (preg_match("/php|phtml[0-9]*?/i", $file["only_extension"]) || in_array($file["only_extension"],
+                FilesTypes::DISALLOWED) || !in_array($file["only_extension"],
+                $this->uploadLimits->getAllowedExtensions())) {
+            array_push($this->errorMessages, $this->parseMessage($this->messages["notAllowed"], $file));
+            return false;
+        }
 
+
+        if (preg_match("/\/|\\|&|\||\?|\*/i", $file["only_name"])) {
+            array_push($this->errorMessages, $this->parseMessage($this->messages["wrongName"], $file));
+            return false;
+        }
+
+        return true;
     }
 
-    private function moveFile($file, $fileToUpload)
+    /**
+     * @param array $file
+     * @param string $newName
+     * @return bool
+     * @throws DirectoryNotFoundException
+     * @throws Exception\CreateDirectoryException
+     * @throws Exception\DeleteFileException
+     * @throws Exception\FileException
+     * @throws Exception\FileNotFoundException
+     * @throws Exception\GDException | \ImagickException
+     * @throws UploadFileException
+     */
+    private function moveFile(array $file, string $newName):bool
     {
 
-        $success = move_uploaded_file($file['tmp_name'], $this->tempDir . $fileToUpload["new_name"] . "." . $fileToUpload["extension"]);
+        $success = move_uploaded_file($file['tmp_name'], $this->temporaryDestination . $newName . "." . $file["only_extension"]);
 
         if ($success) {
-            array_push($this->success, $this->parseMessage($this->messages["success"], $file));
+            array_push($this->successMessages, $this->parseMessage($this->messages["success"], $file));
         } else {
-            array_push($this->errors, $this->parseMessage($this->messages["nonSuccess"], $file));
-            return;
+            array_push($this->errorMessages, $this->parseMessage($this->messages["nonSuccess"], $file));
+            return false;
         }
 
-        $newFile = $this->commander->getActualPath() . "/" . $fileToUpload["full"];
+        if ($this->commander->isImage($file["only_extension"])) {
 
-        if ($this->commander->isImage($fileToUpload["extension"])) {
-
-            if (count($this->uploadedFiles["images"]) > 0) {
-                $index = count($this->uploadedFiles["images"]);
-            } else {
-                $index = 0;
+            if($this->resizeImagesSettings == null){
+                throw new UploadFileException("No image resize settings defined");
             }
 
-            $imgManager = new ImagesManager();
-            $commander = new FileCommander();
+            $thumbs = [];
 
             $i = 1;
-            foreach ($this->thumbs as $thumb) {
+            foreach ($this->imagesThumbsSettings as $thumbSetting) {
 
-                if (empty($this->uploadedFiles["images"][$index]["thumbs"])) {
-                    $this->uploadedFiles["images"][$index]["thumbs"] = [];
+                $this->imagesManager->setTargetDirectory($this->temporaryDestination);
+                $this->imagesManager->setOutputDirectory($thumbSetting['destination']);
+
+                $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"],
+                    $this->imagesResourceType);
+
+                if ($this->autoRotateImages) {
+                    $imageManageResource->autoRotate();
                 }
 
-                $imgManager->setDestination($this->tempDir);
-                $imgManager->setOutputDestination($thumb['destination']);
+                $imageManageResource->resize($thumbSetting["resize"]->getResizeWidth(),
+                    $thumbSetting["resize"]->getResizeHeight(), $thumbSetting["resize"]->getResizeType());
+                $imageManageResource->getImageResource()->setNewName($newName . "_thumb_" . $i);
+                $imageManageResource->save();
 
-                $image = $imgManager->loadGDImage($fileToUpload["new_name"], $fileToUpload["extension"]);
+                $imageResource = $imageManageResource->getImageResource();
+                $imageResource->applyNewSettings();
 
-                if ($this->imagesSettings["autorotate"]) {
-                    $image->autoRotate();
-                }
-
-                $image->resize($thumb["resize"]->getResizeWidth(), $thumb["resize"]->getResizeHeight(), $thumb["resize"]->getResizeType());
-
-                $newName = $fileToUpload["new_name"]."_thumb_".$i;
-                $image->setName($newName);
-                $image->save();
-
-                $commander->setPath($thumb['destination']);
-                $file = $commander->searchFile($image->getName(), $image->getExtension());
-                array_push($this->uploadedFiles["images"][$index]["thumbs"], $file);
-
+                array_push($thumbs, $imageResource);
                 $i++;
             }
 
-            $imgManager->setDestination($this->tempDir);
-            $imgManager->setOutputDestination($this->commander->getActualPath());
+            $this->imagesManager->setTargetDirectory($this->temporaryDestination);
+            $this->imagesManager->setOutputDirectory($this->targetDestination);
 
-            $image = $imgManager->loadGDImage($fileToUpload["new_name"], $fileToUpload["extension"]);
-            $image->autoRotate();
-            $image->resize($this->resizeSettings->getResizeWidth(), $this->resizeSettings->getResizeHeight(), $this->resizeSettings->getResizeType());
-            $image->save();
+            $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
 
-            $commander->setPath($this->commander->getActualPath());
-            if (!$commander->dirExists("backup")) {
-                $commander->addDir("backup", true);
-            } else {
-                $commander->moveToDir("backup");
+            if ($this->autoRotateImages) {
+                $imageManageResource->autoRotate();
             }
 
-            $commander->copyFileFromAnotherDirectory($this->tempDir, $fileToUpload["new_name"], $fileToUpload["extension"]);
+            $imageManageResource->resize($this->resizeImagesSettings->getResizeWidth(), $this->resizeImagesSettings->getResizeHeight(), $this->resizeImagesSettings->getResizeType());
+            $imageManageResource->save();
 
-            $image->removeOriginal();
-            $this->commander->refresh();
-            $file = $this->commander->searchFile($image->getName(), $image->getExtension());
-            $this->uploadedFiles["images"][$index]["original"] = $file;
+            $this->commander->setPath($this->targetDestination);
+            if (!$this->commander->directoryExists("backup")) {
+                $this->commander->addDirectory("backup", true);
+            } else {
+                $this->commander->moveToDirectory("backup");
+            }
+
+            $this->commander->copyFileFromAnotherDirectory($this->temporaryDestination, $newName, $file["new_extension"]);
+            $imageManageResource->removeOriginal();
+
+            $imageResource = $imageManageResource->getImageResource();
+            $imageResource->applyNewSettings();
+
+            array_push($this->uploadedFiles["images"], ["original" => $imageResource, "thumbs" => $thumbs]);
 
         } else {
-
-            $preLoadFile = $this->tempDir . $fileToUpload["full"];
-            copy($preLoadFile, $newFile);
-            unlink($preLoadFile);
-
-            $this->commander->refresh();
-            $file = $this->commander->searchFile($fileToUpload["new_name"], $fileToUpload["extension"]);
-
-            array_push($this->uploadedFiles["files"], $file);
-
+            $this->commander->setPath($this->temporaryDestination);
+            $this->commander->copyFileToAnotherDirectory($this->targetDestination, $newName, $file["only_extension"]);
+            $this->commander->removeFile($newName.".".$file["only_extension"]);
+            $this->commander->moveToDirectory($this->targetDestination);
+            array_push($this->uploadedFiles["files"], $this->commander->getFile($newName, $file["only_extension"]));
         }
 
+        return true;
     }
 
     public function getUploadedFiles()
@@ -428,48 +443,21 @@ class FileUploader
         return $this->uploadedFiles;
     }
 
-    public function printStats()
+    public function getSuccessMessages()
     {
-
-        $message = "";
-
-        foreach ($this->errors as $value) {
-            $message .= $value . "<br />";
-        }
-
-        foreach ($this->success as $value) {
-            $message .= $value . "<br />";
-        }
-
-        return $message;
-
+        return $this->successMessages;
     }
 
-    public function countErrors()
+    public function getErrorMessages()
     {
-        return count($this->errors);
+        return $this->errorMessages;
     }
-
-    public function getResult()
-    {
-        $result = array(0 => $this->success, 1 => $this->errors);
-        return $result;
-    }
-
 
     public function clear()
     {
-
-        $this->uploadLimits = new UploadedFilesLimits();
-        $this->resizeSettings = new ImagesResizeSettings();
-        //$this->cropSettings = new ImagesCropSettings();
-
-        $this->thumbs = [];
-        $this->errors = [];
-        $this->success = [];
-
         $this->uploadedFiles = [];
-
+        $this->successMessages = [];
+        $this->errorMessages = [];
     }
 
 }

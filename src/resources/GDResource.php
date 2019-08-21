@@ -12,6 +12,7 @@ final class GDResource extends ImageManageResource
      * GDResource constructor.
      * @param ImageResource $image
      * @param FileCommander $commander
+     * @throws GDException
      */
     function __construct(ImageResource $image, FileCommander $commander){
 
@@ -35,6 +36,8 @@ final class GDResource extends ImageManageResource
 
         if ($this->isValidGD($resource)) {
             $this->resource = $resource;
+        } else {
+            throw new GDException("GD resource is not valid");
         }
 
     }
@@ -276,8 +279,8 @@ final class GDResource extends ImageManageResource
             $extension = $this->image->getExtension();
         }
 
-        $fileDestination = $pom.$this->image->getFilePath();
-        $finalDestination = $this->image->getFilePath();
+        $fileDestination = $this->commander->getAbsolutePath()."/".$pom.$this->image->getNewNameExtension();
+        $finalDestination = $this->commander->getAbsolutePath()."/".$this->image->getNewNameExtension();
 
         switch ($extension) {
             case "jpg":
@@ -296,7 +299,7 @@ final class GDResource extends ImageManageResource
             rename($fileDestination,$finalDestination);
         }
 
-        $this->commander->setPath($this->image->getFilePath());
+        $this->commander->setPath($this->image->getFileDirectoryPath());
 
     }
 

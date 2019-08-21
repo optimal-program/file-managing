@@ -64,6 +64,7 @@ class ImagesManager
      * @throws DirectoryNotFoundException
      * @throws FileException
      * @throws FileNotFoundException
+     * @throws Exception\GDException|\ImagickException
      */
     public function loadImageManageResource(string $imgName,?string $imgExtension = null,string $resourceType = self::RESOURCE_TYPE_GD):ImageManageResource
     {
@@ -102,31 +103,5 @@ class ImagesManager
 
     }
 
-    /**
-     * @param $width
-     * @param $height
-     * @param string $type
-     * @return null|resource
-     * @throws \Exception
-     *
-    public function createEmptyGD($width, $height, $type = "truecolor")
-    {
-        $image = null;
-
-        switch ($type) {
-            case "truecolor":
-                if (is_numeric($width) && is_numeric($height)) {
-                    $image = imagecreatetruecolor($width, $height);
-                } else {
-                    throw new \Exception("No width or height defined!");
-                }
-                break;
-            default:
-                break;
-        }
-
-        return $image;
-    }
-    */
 }
 
