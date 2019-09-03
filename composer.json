@@ -7,6 +7,9 @@
     "image",
     "resize"
   ],
+  "require": {
+    "php": ">=7.2"
+  },
   "authors": [
     {
       "name": "Radim Vidlák",
