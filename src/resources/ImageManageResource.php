@@ -7,8 +7,9 @@ use Optimal\FileManaging\FileCommander;
 abstract class ImageManageResource
 {
 
-    const CROP_TYPE_CROP = "crop";
-    const CROP_TYPE_SUPPLEMENT = "supplement";
+    const RESIZE_TYPE_CROP = "crop";
+    const RESIZE_TYPE_SUPPLEMENT = "supplement";
+    const RESIZE_TYPE_SHRINK_ONLY = "shrink";
 
     protected $image;
     protected $resource;
@@ -113,7 +114,7 @@ abstract class ImageManageResource
      * @param string $method
      * @throws \Exception
      */
-    public function resize(int $width = 0,int $height = 0,string $method = self::CROP_TYPE_CROP)
+    public function resize(int $width = 0,int $height = 0,string $method = self::RESIZE_TYPE_SHRINK_ONLY)
     {
 
         if ($width != 0 && $height != 0) {
@@ -201,12 +202,12 @@ abstract class ImageManageResource
 
                         break;
                     case "supplement":
-
                         $this->transparentBackground($width, $height);
-
+                        break;
+                    case "shrink":
                         break;
                     default:
-                        throw new \Exception("Špatně defnovaný způsob oříznutí obrázků (" . $method . ").");
+                        throw new \Exception("Wrong resize type");
                         break;
                 }
 
