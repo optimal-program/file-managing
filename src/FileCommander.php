@@ -168,7 +168,9 @@ class FileCommander
             throw new DirectoryNotFoundException("No directory set");
         }
 
-        $dirs = array_filter(glob(".*"), 'is_dir');
+        $dirs = array_filter(scandir($this->actualPath), function ($v){
+            return is_dir($this->actualPath."/".$v) && !in_array($v, [".",".."]);
+        });
 
         if ($sort) {
             return $this->sortFiles($dirs);
@@ -186,7 +188,10 @@ class FileCommander
     public function searchDirectories(string $regex = ".*",bool $sort = true):array
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
-        $dirs = array_filter(glob($regex), 'is_dir');
+
+        $dirs = preg_grep("~$regex~", array_filter(scandir($this->actualPath), function ($v){
+           return is_dir($this->actualPath."/".$v) && !in_array($v, [".",".."]);
+        }));
 
         if ($sort) {
             return $this->sortFiles($dirs);
@@ -358,9 +363,9 @@ class FileCommander
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
-        $foundFiles = array_filter(glob($pattern), function ($k, $v){
+        $foundFiles = preg_grep("~$pattern~", array_filter(scandir($this->actualPath), function ($v){
             return !is_dir($v);
-        }, ARRAY_FILTER_USE_BOTH);
+        }));
 
         if($sort){
             $foundFiles = $this->sortFiles($foundFiles);
@@ -435,9 +440,9 @@ class FileCommander
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
-        $foundImages = array_filter(glob($pattern), function ($k, $v){
+        $foundImages = preg_grep("~$pattern~", array_filter(scandir($this->actualPath), function ($v){
             return !is_dir($v);
-        }, ARRAY_FILTER_USE_BOTH);
+        }));
 
         if($sort){
             $foundImages = $this->sortFiles($foundImages);
@@ -705,10 +710,10 @@ class FileCommander
     {
         if ($pattern != "") {
 
-            $files = glob($pattern);
+            $files = glob($this->actualPath . "/" .$pattern);
 
             foreach ($files as $file) {
-                if (!unlink($this->actualPath . "/" . $file)) {
+                if (!unlink($file)) {
                     throw new DeleteFileException("Remove file: " . $file . " wasn't successful");
                 }
             }

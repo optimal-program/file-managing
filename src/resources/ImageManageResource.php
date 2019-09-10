@@ -29,20 +29,19 @@ abstract class ImageManageResource
      * @param int $new_width
      * @param int $new_height
      */
-    protected function imageResize(int $new_width = 0,int $new_height = 0) {
+    protected function imageResize(int $new_width = 0, int $new_height = 0) {
 
         if ($new_height != 0) {
             $prc = (100 * $new_height) / $this->image->getHeight();
             $height = $new_height;
-            $width = ceil(($this->image->getWidth() * $prc) / 100);
+            $width = (int) ceil(($this->image->getWidth() * $prc) / 100);
         } else {
             $prc = (100 * $new_width) / $this->image->getWidth();
             $width = $new_width;
-            $height = ceil($this->image->getHeight() * $prc) / 100;
+            $height = (int) ceil(($this->image->getHeight() * $prc) / 100);
         }
 
         $this->resampleImg($width, $height);
-
     }
 
     /**

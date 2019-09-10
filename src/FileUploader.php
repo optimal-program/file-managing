@@ -28,6 +28,7 @@ class FileUploader {
     private $imagesThumbsSettings;
     private $uploadLimits;
     private $autoRotateImages;
+    private $backup = true;
 
     private $_FILES;
 
@@ -36,7 +37,7 @@ class FileUploader {
 
     private $uploadedFiles;
 
-    public function init(){
+    public static function init(){
         if(self::$instance == null){
             self::$instance = new FileUploader();
         }
@@ -95,6 +96,10 @@ class FileUploader {
         ];
 
         $this->imagesResourceType = ImagesManager::RESOURCE_TYPE_GD;
+    }
+
+    public function enableBackup($enable = true){
+        $this->backup = $enable;
     }
 
     /**
@@ -189,11 +194,11 @@ class FileUploader {
     public function isPostFile(string $inputName)
     {
 
-        if (empty($this->postFiles)) {
+        if (empty($this->_FILES)) {
             return false;
         }
 
-        foreach ($this->postFiles as $key => $val) {
+        foreach ($this->_FILES as $key => $val) {
 
             if ($key != $inputName) {
                 continue;
@@ -220,7 +225,7 @@ class FileUploader {
 
     /**
      * @param string $inputName
-     * @param int $key
+     * @param int $index
      * @param string|null $newFileName
      * @param bool $overwrite
      * @throws DirectoryException
@@ -229,10 +234,11 @@ class FileUploader {
      * @throws Exception\DeleteFileException
      * @throws Exception\FileException
      * @throws Exception\FileNotFoundException
-     * @throws Exception\GDException | \ImagickException
+     * @throws Exception\GDException
      * @throws UploadFileException
+     * @throws \ImagickException
      */
-    public function uploadFile(string $inputName,int $key,?string $newFileName = null,bool $overwrite = true)
+    public function uploadFile(string $inputName,int $index,?string $newFileName = null,bool $overwrite = true)
     {
 
         try {
@@ -242,9 +248,9 @@ class FileUploader {
             throw new DirectoryException("Temporary or target directory is not defined");
         }
 
-        if($this->checkFile($this->_FILES[$inputName][$key])) {
+        if($this->checkFile($this->_FILES[$inputName][$index])) {
 
-            $file = $this->_FILES[$inputName][$key];
+            $file = $this->_FILES[$inputName][$index];
             $newName = uniqid();
 
             if ($newFileName != null) {
@@ -253,7 +259,7 @@ class FileUploader {
 
             $this->commander->setPath($this->targetDestination);
 
-            if($overwrite){
+            if(!$overwrite){
                 $i = 1;
                 if($this->commander->fileExists($newName, $file["only_extension"])){
                     while($this->commander->fileExists($newName."_".$i, $file["only_extension"])){
@@ -263,7 +269,7 @@ class FileUploader {
                 $newName = $newName."_".$i;
             }
 
-            $this->moveFile($this->_FILES[$inputName][$key], $newName);
+            $this->moveFile($this->_FILES[$inputName][$index], $newName);
         }
     }
 
@@ -334,7 +340,6 @@ class FileUploader {
             return false;
         }
 
-
         if (preg_match("/\/|\\|&|\||\?|\*/i", $file["only_name"])) {
             array_push($this->errorMessages, $this->parseMessage($this->messages["wrongName"], $file));
             return false;
@@ -358,7 +363,7 @@ class FileUploader {
     private function moveFile(array $file, string $newName):bool
     {
 
-        $success = move_uploaded_file($file['tmp_name'], $this->temporaryDestination . $newName . "." . $file["only_extension"]);
+        $success = @move_uploaded_file($file['tmp_name'], $this->temporaryDestination . "/" . $newName . "." . $file["only_extension"]);
 
         if ($success) {
             array_push($this->successMessages, $this->parseMessage($this->messages["success"], $file));
@@ -412,14 +417,20 @@ class FileUploader {
             $imageManageResource->resize($this->resizeImagesSettings->getResizeWidth(), $this->resizeImagesSettings->getResizeHeight(), $this->resizeImagesSettings->getResizeType());
             $imageManageResource->save();
 
+            $imageSource = $imageManageResource->getImageResource();
+
             $this->commander->setPath($this->targetDestination);
-            if (!$this->commander->directoryExists("backup")) {
-                $this->commander->addDirectory("backup", true);
-            } else {
-                $this->commander->moveToDirectory("backup");
+
+            if($this->backup) {
+                if (!$this->commander->directoryExists("backup")) {
+                    $this->commander->addDirectory("backup", true);
+                } else {
+                    $this->commander->moveToDirectory("backup");
+                }
             }
 
-            $this->commander->copyFileFromAnotherDirectory($this->temporaryDestination, $newName, $file["new_extension"]);
+            $ext = $imageSource->getNewExtension() != null ? $imageSource->getNewExtension() : $imageSource->getExtension();
+            $this->commander->copyFileFromAnotherDirectory($this->temporaryDestination, $newName, $ext);
             $imageManageResource->removeOriginal();
 
             $imageResource = $imageManageResource->getImageResource();
@@ -461,6 +472,3 @@ class FileUploader {
     }
 
 }
-
-?>
-

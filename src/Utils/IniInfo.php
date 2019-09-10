@@ -25,54 +25,54 @@ class IniInfo
      */
     public static function toBytes(string $size):int {
 
-        switch (substr($size, -2, 2)){
-            case 'Gb':
-                $size = str_replace("Gb","G",$size);
-                break;
-            case 'Mb':
-                $size = str_replace("Mb","M",$size);
-                break;
-            case 'Kb':
-                $size = str_replace("Kb","K",$size);
-                break;
-            default:
-                break;
-        }
+        $suffix = null;
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
         switch (substr($size, -1)) {
             case 'K':
             case 'k':
-                $maxPostSize = floatval($size);
-                $maxPostSize *= 1024;
-                break;
+                $suffix = "KB";
+                $number = (int) substr($size, 0, -1);
+            break;
             case 'M':
             case 'm':
-                $maxPostSize = floatval($size);
-                $maxPostSize *= pow(1024, 2);
-                break;
+                $suffix = "MB";
+                $number = (int) substr($size, 0, -1);
+            break;
             case 'G':
             case 'g':
-                $maxPostSize = floatval($size);
-                $maxPostSize *= pow(1024, 3);
-                break;
+                $suffix = "GB";
+                $number = (int) substr($size, 0, -1);
+            break;
             default:
-                $maxPostSize = $size;
-                break;
+                $suffix = strtoupper(substr($size,-2));
+                $number = (int) substr($size, 0, -2);
+
+                //B or no suffix
+                if(is_numeric(substr($suffix, 0, 1))) {
+                    return (int) preg_replace('/[^\d]/', '', $size);
+                }
+
+            break;
         }
 
-        return $maxPostSize;
+        $exponent = array_flip($units)[$suffix] ?? null;
+        if($exponent === null) {
+            return 0;
+        }
 
+        return $number * (1024 ** $exponent);
     }
 
     /**
-     * @return int
+     * @return float
      */
     public static function getPostMaxSize():int {
         return self::$PostMaxSize;
     }
 
     /**
-     * @return int
+     * @return float
      */
     public static function getMaxFileSize():int {
         return self::$UploadMaxFileSize;
@@ -82,7 +82,7 @@ class IniInfo
      * @return int
      */
     public static function getMaxFilesCount():int {
-        return self::$maxFileUploads;
+        return (int) self::$maxFileUploads;
     }
 
 }

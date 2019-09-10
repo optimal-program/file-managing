@@ -17,7 +17,7 @@ class UploadedFilesLimits
         $this->maxCount = IniInfo::getMaxFilesCount();
         $this->maxFileSize = IniInfo::getMaxFileSize();
         $this->maxAllFilesSize = IniInfo::getPostMaxSize();
-        $this->allowedExtensions = [];
+        $this->allowedExtensions = FilesTypes::ALL_SUPPORTED_FILES;
     }
 
     /**

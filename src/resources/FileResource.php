@@ -192,18 +192,22 @@ class FileResource
     }
 
     public function applyNewSettings(){
-        $this->name = $this->newName;
-        $this->extension = $this->newExtension;
-
-        if(!file_exists($this->newPath)){
-            throw new DirectoryNotFoundException("Directory ".$this->newPath." not found");
+        if($this->newName != null) {
+            $this->name = $this->newName;
+        }
+        if($this->newExtension != null) {
+            $this->extension = $this->newExtension;
+        }
+        if($this->newPath != null) {
+            if (!file_exists($this->newPath)) {
+                throw new DirectoryNotFoundException("Directory " . $this->newPath . " not found");
+            }
+            if (!file_exists($this->newPath . "/" . $this->name . "." . $this->extension)) {
+                throw new FileNotFoundException("File " . $this->name . "." . $this->extension . " not found");
+            }
+            $this->path = $this->newPath;
         }
 
-        if(!file_exists($this->newPath."/".$this->name.".".$this->extension)){
-            throw new FileNotFoundException("File ".$this->name.".".$this->extension." not found");
-        }
-
-        $this->path = $this->newPath;
         $this->setFileInfo();
     }
 
