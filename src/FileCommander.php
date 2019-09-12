@@ -724,4 +724,40 @@ class FileCommander
 
     }
 
+    /**
+     * @param string $targetPath
+     * @param string $destinationPath
+     * @param int $permissions
+     */
+    private function copyDirectoryToRecursive(string $targetPath,string $destinationPath,int $permissions = 775){
+
+        $dir = dir($targetPath);
+        while (false !== $entry = $dir->read()) {
+            // Skip pointers
+            if ($entry == '.' || $entry == '..') {
+                continue;
+            }
+            if(is_file($targetPath."/".$entry)){
+                copy($targetPath."/".$entry, $destinationPath."/".$entry);
+            } else {
+                mkdir($destinationPath, $permissions);
+                $this->copyDirectoryToRecursive($targetPath."/".$entry, $targetPath."/".$entry);
+            }
+        }
+
+        // Clean up
+        $dir->close();
+
+    }
+
+    /**
+     * @param string $destPath
+     * @param int $permissions
+     * @throws DirectoryNotFoundException
+     */
+    public function copyDirectoryTo(string $destPath, int $permissions = 775){
+        $this->checkPath($destPath);
+        $this->copyDirectoryToRecursive($this->getAbsolutePath(), $destPath);
+    }
+
 }
