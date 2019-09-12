@@ -52,11 +52,11 @@ class SystemPaths
     }
 
     /**
-     * @param string $s
+     * @param array $s
      * @param bool $use_forwarded_host
      * @return string
      */
-    public static function fullUrl(string $s,bool $use_forwarded_host = false):string
+    public static function fullUrl(array $s, bool $use_forwarded_host = false):string
     {
         $ssl = (!empty($s[ 'HTTPS' ]) && $s[ 'HTTPS' ] == 'on') ? true : false;
         $sp = strtolower($s[ 'SERVER_PROTOCOL' ]);
