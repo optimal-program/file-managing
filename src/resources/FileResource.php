@@ -28,14 +28,14 @@ class FileResource
     /**
      * FileResource constructor.
      * @param string $path
-     * @param string $name
+     * @param string|null $name
      * @param string|null $extension
      * @throws FileException
      */
-    function __construct(string $path,string $name,?string $extension = null){
+    function __construct(string $path,?string $name = null,?string $extension = null){
 
         if(!file_exists($path)){
-            throw new FileException("Path is not valid");
+            throw new FileException("Path: ".$path." is not valid");
         }
 
         if(!is_dir($path)){

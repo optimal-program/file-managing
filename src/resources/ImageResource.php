@@ -2,21 +2,24 @@
 
 namespace Optimal\FileManaging\resources;
 
-final class ImageResource extends FileResource
+class ImageResource extends FileResource
 {
 
     protected $width;
     protected $height;
     protected $orientation;
 
+    protected $thumbs = [];
+    protected $backup = null;
+
     /**
      * ImageResource constructor.
      * @param string $path
-     * @param string $name
+     * @param string|null $name
      * @param string|null $extension
      * @throws \Optimal\FileManaging\Exception\FileException
      */
-    function __construct(string $path,string $name,?string $extension = null)
+    function __construct(string $path, ?string $name = null,?string $extension = null)
     {
         parent::__construct($path, $name, $extension);
     }
@@ -57,6 +60,54 @@ final class ImageResource extends FileResource
     {
         $this->width = $width;
         return $this;
+    }
+
+    /**
+     * @param int $index
+     * @return ImageThumbResource|null
+     */
+    public function getThumb(int $index): ?ImageThumbResource
+    {
+        if(isset($this->thumbs[$index])){
+            return $this->thumbs[$index];
+        }
+        return null;
+    }
+
+    /**
+     * @param ImageThumbResource $thumb
+     * @param bool $main
+     */
+    public function addThumb(ImageThumbResource $thumb, bool $main = false):void
+    {
+        $thumb->setMain($main);
+        $this->thumbs[] = $thumb;
+    }
+
+    /**
+     * @param int $index
+     */
+    public function removeThumb(int $index){
+        if(isset($this->thumbs[$index])){
+            unset($this->thumbs[$index]);
+        }
+        $this->thumbs = array_values($this->thumbs);
+    }
+
+    /**
+     * @return ImageBackupResource|null
+     */
+    public function getBackup(): ?ImageBackupResource
+    {
+        return $this->backup;
+    }
+
+    /**
+     * @param ImageBackupResource $backup
+     */
+    public function setBackup(ImageBackupResource $backup):void
+    {
+        $this->backup = $backup;
     }
 
     /**
@@ -130,6 +181,14 @@ final class ImageResource extends FileResource
         $string = str_replace("{orientation}", $this->orientation, $string);
 
         return $string;
+    }
+
+    public function castAs($newClass) {
+        $obj = new $newClass;
+        foreach (get_object_vars($this) as $key => $name) {
+            $obj->$key = $name;
+        }
+        return $obj;
     }
 
 }

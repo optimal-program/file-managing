@@ -10,7 +10,9 @@ use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
+use Optimal\FileManaging\resources\ImageBackupResource;
 use Optimal\FileManaging\resources\ImageResource;
+use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\SystemPaths;
 use Optimal\FileManaging\Utils\UploadedFilesLimits;
 use Optimal\FileManaging\resources\FileResource;
@@ -339,7 +341,6 @@ class FileCommander
         return file_exists($this->actualPath . "/" . $name.".".$extension);
     }
 
-
     /**
      * @param string $extension
      * @return bool
@@ -372,10 +373,11 @@ class FileCommander
         }
 
         $fileResources = [];
+        $actualPath = (string) $this->actualPath;
 
         foreach ($foundFiles as $file){
             if(!$this->isImage(pathinfo($this->actualPath.".".$file, PATHINFO_EXTENSION))) {
-                $fileResource = new FileResource($this->actualPath, $file);
+                $fileResource = new FileResource($actualPath, $file);
                 array_push($fileResources, $fileResource);
             }
         }
@@ -404,7 +406,8 @@ class FileCommander
             throw new FileNotFoundException("File: ".$name.".".$extension." not found");
         }
 
-        return new FileResource($this->actualPath, $name, $extension);
+        $actualPath = (string) $this->actualPath;
+        return new FileResource($actualPath, $name, $extension);
     }
 
     /**
@@ -432,11 +435,13 @@ class FileCommander
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return ImageResource[]
+     * @param bool $addBackupImage
+     * @param bool $addThumbs
+     * @return array
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    protected function getImagesRegex(string $pattern = ".*",bool $sort = true):array {
+    protected function getImagesRegex(string $pattern = ".*",bool $sort = true,bool $addBackupImage = true, bool $addThumbs = true):array {
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
@@ -451,9 +456,10 @@ class FileCommander
         $imageResources = [];
 
         foreach ($foundImages as $image){
-            if($this->isImage(pathinfo($this->actualPath.".".$image, PATHINFO_EXTENSION))) {
-                $imageResource = new ImageResource($this->actualPath, $image);
-                array_push($imageResources, $imageResource);
+            $name = pathinfo($this->actualPath.".".$image, PATHINFO_FILENAME);
+            $ext = pathinfo($this->actualPath.".".$image, PATHINFO_EXTENSION);
+            if($this->isImage($ext)) {
+                array_push($imageResources, $this->getImage($name, $ext, $addBackupImage, $addThumbs));
             }
         }
 
@@ -464,10 +470,13 @@ class FileCommander
     /**
      * @param string $name
      * @param string|null $extension
+     * @param bool $addBackupImage
+     * @param bool $addThumbs
      * @return ImageResource
+     * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function getImage(string $name,?string $extension = null):ImageResource{
+    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumbs = true):ImageResource{
 
         if($extension == null){
             $parts = explode(".", $name);
@@ -475,7 +484,31 @@ class FileCommander
             $extension = strtolower($parts[1]);
         }
 
-        return new ImageResource($this->actualPath, $name, $extension);
+        $actualPath = (string) $this->actualPath;
+
+        $imageResource = new ImageResource($actualPath, $name, $extension);
+
+        if($addBackupImage && $this->directoryExists("backup")){
+            $this->moveToDirectory("backup");
+            $backupImage = $this->getImage($imageResource->getName(), $imageResource->getExtension(), false, false);
+            if($backupImage != null) {
+                $backupImage = $backupImage->castAs('ImageBackupResource');
+                $imageResource->setBackup($backupImage);
+            }
+            $this->moveUp();
+        }
+
+        if($addThumbs && $this->directoryExists("thumbs")){
+            $this->moveToDirectory("thumbs");
+            $imageThumbs = $this->searchImages($imageResource->getName().'_thumb');
+            foreach ($imageThumbs as $imageThumb){
+                $imageThumb = $imageThumb->castAs('ImageThumbResource');
+                $imageResource->addThumb($imageThumb);
+            }
+            $this->moveUp();
+        }
+
+        return $imageResource;
     }
 
     /**
@@ -536,7 +569,7 @@ class FileCommander
             }
 
             if ($extension != "") {
-                if (!in_array($extension, UploadedFilesLimits::DISALLOWED)) {
+                if (!in_array($extension, FilesTypes::DISALLOWED)) {
 
                     if (!$this->fileExists($name, $extension)) {
                         $f = fopen($this->actualPath . "/" . $name, "w+");
@@ -630,74 +663,74 @@ class FileCommander
 
     /**
      * @param string $path
-     * @param string $name
+     * @param string|null $name
      * @param string|null $extension
      * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function copyFileFromAnotherDirectory(string $path,string $name,?string $extension = null,?string $renameTo = null):bool {
+    public function copyFileFromAnotherDirectory(string $path,?string $name = null,?string $extension = null,?string $renameTo = null):bool
+    {
+        if (file_exists($path)) {
 
-        if(file_exists($path) && is_dir($path)){
-
-            if ($name != "") {
-
-                if($extension == null){
-                    $parts = explode(".", $name);
-                    $name = $parts[0];
-                    $extension = strtolower($parts[1]);
-                }
-
-                if(copy($path."/".$name.".".$extension, $this->actualPath."/".($renameTo != null ? $renameTo : $name).".".$extension)){
-                    return true;
-                }
-
-                return false;
-
-            } else {
-                throw new FileException("File name is not defined");
+            if (!is_dir($path)) {
+                $name = pathinfo($path, PATHINFO_FILENAME);
+                $extension = pathinfo($path, PATHINFO_EXTENSION);
             }
 
+            if ($extension == null) {
+                $parts = explode(".", $name);
+                $name = $parts[0];
+                $extension = strtolower($parts[1]);
+            }
+
+            if (copy($path . "/" . $name . "." . $extension,
+                $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+                return true;
+            }
+
+            return false;
+
         } else {
-            throw new DirectoryNotFoundException("Directory ".$path." not found");
+            throw new DirectoryNotFoundException("Path " . $path . " not found");
         }
 
     }
 
     /**
      * @param string $path
-     * @param string $name
+     * @param string|null $name
      * @param string|null $extension
      * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
-    public function copyFileToAnotherDirectory(string $path,string $name,?string $extension = null,?string $renameTo = null):bool {
+    public function copyFileToAnotherDirectory(string $path,?string $name = null,?string $extension = null,?string $renameTo = null):bool
+    {
+        if (file_exists($path)) {
 
-        if(file_exists($path) && is_dir($path)){
-
-            if ($name != "") {
-
-                if($extension == null){
-                    $parts = explode(".", $name);
-                    $name = $parts[0];
-                    $extension = strtolower($parts[1]);
-                }
-
-                if(copy($this->actualPath."/".$name.".".$extension, $path."/".($renameTo != null ? $renameTo : $name).".".$extension)){
-                    return true;
-                }
-
-                return false;
-
-            } else {
-                throw new FileException("File name is not defined");
+            if (!is_dir($path)) {
+                $name = pathinfo($path, PATHINFO_FILENAME);
+                $extension = pathinfo($path, PATHINFO_EXTENSION);
             }
 
+
+            if ($extension == null) {
+                $parts = explode(".", $name);
+                $name = $parts[0];
+                $extension = strtolower($parts[1]);
+            }
+
+            if (copy($this->actualPath . "/" . $name . "." . $extension,
+                $path . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+                return true;
+            }
+
+            return false;
+
         } else {
-            throw new DirectoryNotFoundException("Directory ".$path." not found");
+            throw new DirectoryNotFoundException("Path " . $path . " not found");
         }
 
     }
@@ -757,7 +790,7 @@ class FileCommander
      */
     public function copyDirectoryTo(string $destPath, int $permissions = 775){
         $this->checkPath($destPath);
-        $this->copyDirectoryToRecursive($this->getAbsolutePath(), $destPath);
+        $this->copyDirectoryToRecursive($this->getAbsolutePath(), $destPath, $permissions);
     }
 
 }
