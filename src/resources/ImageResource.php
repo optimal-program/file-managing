@@ -5,12 +5,18 @@ namespace Optimal\FileManaging\resources;
 class ImageResource extends FileResource
 {
 
+    const EXTENSION_JPG = "jpg";
+    const EXTENSION_PNG = "png";
+    const EXTENSION_GIF = "gif";
+    const EXTENSION_WEBP = "webp";
+
     protected $width;
     protected $height;
     protected $orientation;
 
     protected $thumbs = [];
-    protected $backup = null;
+    protected $backupResource = null;
+    protected $lowPreloadQualityResource = null;
 
     /**
      * ImageResource constructor.
@@ -30,7 +36,7 @@ class ImageResource extends FileResource
 
         $exif = @exif_read_data($this->path."/".$this->name.".".$this->extension);
 
-        if ($this->extension == "jpg") {
+        if ($exif) {
             if (isset($exif["COMPUTED"]["Orientation"])) {
                 $this->orientation = $exif["COMPUTED"]["Orientation"];
             } else {
@@ -97,17 +103,33 @@ class ImageResource extends FileResource
     /**
      * @return ImageBackupResource|null
      */
-    public function getBackup(): ?ImageBackupResource
+    public function getBackupResource(): ?ImageBackupResource
     {
-        return $this->backup;
+        return $this->backupResource;
     }
 
     /**
-     * @param ImageBackupResource $backup
+     * @param ImageBackupResource $backupResource
      */
-    public function setBackup(ImageBackupResource $backup):void
+    public function setBackupResource(ImageBackupResource $backupResource):void
     {
-        $this->backup = $backup;
+        $this->backupResource = $backupResource;
+    }
+
+    /**
+     * @return ImageResource|null
+     */
+    public function getLowPreloadQualityResource(): ?ImageResource
+    {
+        return $this->lowPreloadQualityResource;
+    }
+
+    /**
+     * @param ImageResource $lowQResource
+     */
+    public function setLowPreloadQualityResource(ImageResource $lowQResource):void
+    {
+        $this->lowPreloadQualityResource = $lowQResource;
     }
 
     /**

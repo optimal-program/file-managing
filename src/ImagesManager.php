@@ -5,10 +5,10 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
-use Optimal\FileManaging\resources\GDResource;
+use Optimal\FileManaging\resources\ImageManageGDResource;
 use Optimal\FileManaging\resources\ImageManageResource;
 use Optimal\FileManaging\resources\ImageResource;
-use Optimal\FileManaging\resources\ImagickResource;
+use Optimal\FileManaging\resources\ImageManageImagickResource;
 
 class ImagesManager
 {
@@ -88,10 +88,10 @@ class ImagesManager
 
             switch ($resourceType){
                 case "gd":
-                    $resource = new GDResource($image, $this->commander);
+                    $resource = new ImageManageGDResource($image, $this->commander);
                 break;
                 case "imagick":
-                    $resource = new ImagickResource($image, $this->commander);
+                    $resource = new ImageManageImagickResource($image, $this->commander);
                 break;
             }
 

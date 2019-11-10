@@ -249,6 +249,6 @@ abstract class ImageManageResource
 
     abstract public function show():void;
 
-    abstract public function save():void;
+    abstract public function save(?string $myTarget = null, ?string $extension = null):void;
 
 }

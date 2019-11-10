@@ -5,7 +5,7 @@ namespace Optimal\FileManaging\resources;
 use Optimal\FileManaging\Exception\GDException;
 use Optimal\FileManaging\FileCommander;
 
-final class GDResource extends ImageManageResource
+final class ImageManageGDResource extends ImageManageResource
 {
 
     /**
@@ -32,6 +32,11 @@ final class GDResource extends ImageManageResource
             case "gif":
                 $resource = imagecreatefromgif($this->image->getFilePath());
                 break;
+            case "webp":
+                $resource = imagecreatefromwebp($this->image->getFilePath());
+                break;
+            default:
+                throw new GDException('Unknown image extension: '.$this->image->getExtension().'');
         }
 
         if ($this->isValidGD($resource)) {
@@ -244,11 +249,13 @@ final class GDResource extends ImageManageResource
 
     /**
      * @param string|null $myTarget
+     * @param string|null $extension
+     * @throws GDException
      * @throws \Optimal\FileManaging\Exception\DeleteFileException
      * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
      * @throws \Optimal\FileManaging\Exception\FileException
      */
-    public function save(?string $myTarget = null):void {
+    public function save(?string $myTarget = null, ?string $extension = null):void {
 
         if($this->image->getFileDirectoryPath() == $this->image->getFileNewDirectoryPath()){
             $pom = "_";
@@ -261,6 +268,10 @@ final class GDResource extends ImageManageResource
             $this->image->setNewPath($myTarget);
         } else {
             $this->commander->setPath($this->image->getFileNewDirectoryPath());
+        }
+
+        if($extension != null){
+            $this->image->setNewExtension($extension);
         }
 
         $filesWithSameName = $this->commander->searchImages($this->image->getName());
@@ -292,6 +303,11 @@ final class GDResource extends ImageManageResource
                 break;
             case "gif":
                 imagegif($this->resource, $fileDestination);
+                break;
+            case "webp":
+                imagewebp($this->resource, $fileDestination, 100);
+            default:
+                throw new GDException('Unknown image extension: '.$extension.'');
         }
 
         if ($pom != "") {
@@ -302,5 +318,7 @@ final class GDResource extends ImageManageResource
         $this->commander->setPath($this->image->getFileDirectoryPath());
 
     }
+
+
 
 }

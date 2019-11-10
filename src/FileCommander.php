@@ -493,7 +493,7 @@ class FileCommander
             $backupImage = $this->getImage($imageResource->getName(), $imageResource->getExtension(), false, false);
             if($backupImage != null) {
                 $backupImage = $backupImage->castAs('ImageBackupResource');
-                $imageResource->setBackup($backupImage);
+                $imageResource->setBackupResource($backupImage);
             }
             $this->moveUp();
         }

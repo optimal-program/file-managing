@@ -1,16 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: radim
- * Date: 20.08.2019
- * Time: 14:46
- */
-
 namespace Optimal\FileManaging\resources;
 
 use Optimal\FileManaging\FileCommander;
 
-final class ImagickResource extends ImageManageResource
+final class ImageManageImagickResource extends ImageManageResource
 {
 
     /**
