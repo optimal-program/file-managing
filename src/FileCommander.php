@@ -10,8 +10,8 @@ use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
-use Optimal\FileManaging\resources\ImageBackupResource;
-use Optimal\FileManaging\resources\ImageResource;
+use Optimal\FileManaging\resources\ImageFileResourceBackup;
+use Optimal\FileManaging\resources\ImageFileResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\SystemPaths;
 use Optimal\FileManaging\Utils\UploadedFilesLimits;
@@ -472,11 +472,11 @@ class FileCommander
      * @param string|null $extension
      * @param bool $addBackupImage
      * @param bool $addThumbs
-     * @return ImageResource
+     * @return ImageFileResource
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumbs = true):ImageResource{
+    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumbs = true):ImageFileResource{
 
         if($extension == null){
             $parts = explode(".", $name);
@@ -486,13 +486,12 @@ class FileCommander
 
         $actualPath = (string) $this->actualPath;
 
-        $imageResource = new ImageResource($actualPath, $name, $extension);
+        $imageResource = new ImageFileResource($actualPath, $name, $extension);
 
         if($addBackupImage && $this->directoryExists("backup")){
             $this->moveToDirectory("backup");
             $backupImage = $this->getImage($imageResource->getName(), $imageResource->getExtension(), false, false);
             if($backupImage != null) {
-                $backupImage = $backupImage->castAs('ImageBackupResource');
                 $imageResource->setBackupResource($backupImage);
             }
             $this->moveUp();
@@ -502,7 +501,6 @@ class FileCommander
             $this->moveToDirectory("thumbs");
             $imageThumbs = $this->searchImages($imageResource->getName().'_thumb');
             foreach ($imageThumbs as $imageThumb){
-                $imageThumb = $imageThumb->castAs('ImageThumbResource');
                 $imageResource->addThumb($imageThumb);
             }
             $this->moveUp();
@@ -513,7 +511,7 @@ class FileCommander
 
     /**
      * @param bool $sort
-     * @return ImageResource[]
+     * @return ImageFileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
@@ -524,30 +522,13 @@ class FileCommander
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return ImageResource[]
+     * @return ImageFileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
     public function searchImages(string $pattern = ".*",bool $sort = true):array {
         return $this->getImagesRegex($pattern, $sort);
     }
-
-    /**
-     * @return FileResource|null
-     * @throws FileException
-     *
-    public function getLastFile()
-    {
-        if (!empty($this->files)) {
-            $lastFile = $this->files[ count($this->files) - 1 ];
-            $name = pathinfo($this->getActualPath() . "/" . $lastFile, PATHINFO_FILENAME);
-            $extension = pathinfo($this->getActualPath() . "/" . $lastFile, PATHINFO_EXTENSION);
-            return $this->getFile($this->getActualPath(), $name, $extension);
-        } else {
-            return null;
-        }
-    }
-    */
 
     /**
      * @param string $name

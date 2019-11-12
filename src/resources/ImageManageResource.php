@@ -17,10 +17,10 @@ abstract class ImageManageResource
 
     /**
      * ImageManageResource constructor.
-     * @param ImageResource $image
+     * @param ImageFileResource $image
      * @param FileCommander $commander
      */
-    function __construct(ImageResource $image, FileCommander $commander){
+    function __construct(ImageFileResource $image, FileCommander $commander){
         $this->image = $image;
         $this->commander = $commander;
     }
@@ -54,9 +54,9 @@ abstract class ImageManageResource
     abstract protected function reSampleImg(int $width,int $height,int $x = -1,int $y = -1);
 
     /**
-     * @return ImageResource
+     * @return ImageFileResource
      */
-    public function getImageResource():ImageResource{
+    public function getImageResource():ImageFileResource{
         return $this->image;
     }
 

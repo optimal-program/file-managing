@@ -7,7 +7,7 @@ use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
 use Optimal\FileManaging\resources\ImageManageGDResource;
 use Optimal\FileManaging\resources\ImageManageResource;
-use Optimal\FileManaging\resources\ImageResource;
+use Optimal\FileManaging\resources\ImageFileResource;
 use Optimal\FileManaging\resources\ImageManageImagickResource;
 
 class ImagesManager
