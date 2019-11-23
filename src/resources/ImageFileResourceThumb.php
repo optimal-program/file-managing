@@ -5,8 +5,6 @@ namespace Optimal\FileManaging\resources;
 class ImageFileResourceThumb extends AbstractImageFileResource
 {
 
-    protected $main;
-
     /**
      * ImageThumbResource constructor.
      * @param string $path
@@ -19,23 +17,5 @@ class ImageFileResourceThumb extends AbstractImageFileResource
         parent::__construct($path, $name, $extension);
         $this->main = false;
     }
-
-    /**
-     * @return bool
-     */
-    public function isMain(): bool
-    {
-        return $this->main;
-    }
-
-    /**
-     * @param bool $isMain
-     */
-    public function setIsMain(bool $isMain): void
-    {
-        $this->main = $isMain;
-    }
-
-
 
 }

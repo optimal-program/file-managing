@@ -7,6 +7,7 @@ class ImageFileResource extends AbstractImageFileResource
     protected $thumbs = [];
     protected $backupResource = null;
     protected $lowPreloadQualityResource = null;
+    protected $main;
 
     /**
      * ImageResource constructor.
@@ -18,20 +19,6 @@ class ImageFileResource extends AbstractImageFileResource
     function __construct(string $path, ?string $name = null,?string $extension = null)
     {
         parent::__construct($path, $name, $extension);
-    }
-
-    /**
-     * @return ImageFileResourceThumb|null
-     */
-    public function getMainThumb():?ImageFileResourceThumb
-    {
-        foreach ($this->thumbs as $thumb){
-            /** @var ImageFileResourceThumb $thumb*/
-            if($thumb->isMain()){
-                return $thumb;
-            }
-        }
-        return null;
     }
 
     /**
@@ -48,15 +35,13 @@ class ImageFileResource extends AbstractImageFileResource
 
     /**
      * @param AbstractFileResource $thumb
-     * @param bool $isMain
      * @throws \Exception
      */
-    public function addThumb(AbstractFileResource $thumb, bool $isMain = false):void
+    public function addThumb(AbstractFileResource $thumb):void
     {
         if(!$thumb instanceof ImageFileResourceThumb){
             throw new \Exception('Wrong class type, expected ImageFileResourceThumb');
         }
-        $thumb->setIsMain($isMain);
         $this->thumbs[] = $thumb;
     }
 
@@ -108,6 +93,22 @@ class ImageFileResource extends AbstractImageFileResource
             throw new \Exception('Wrong class type, expected ImageFileResourceThumb');
         }
         $this->lowPreloadQualityResource = $lowQResource;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMain(): bool
+    {
+        return $this->main;
+    }
+
+    /**
+     * @param bool $isMain
+     */
+    public function setIsMain(bool $isMain): void
+    {
+        $this->main = $isMain;
     }
 
 }
