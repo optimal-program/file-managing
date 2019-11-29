@@ -30,7 +30,7 @@ abstract class AbstractFileResource
     private $description = "";
 
     /**
-     * FileResource constructor.
+     * AbstractFileResource constructor.
      * @param string $path
      * @param string|null $name
      * @param string|null $extension
@@ -134,9 +134,9 @@ abstract class AbstractFileResource
 
     /**
      * @param string $name
-     * @return FileResource
+     * @return $this
      */
-    public function setNewName(string $name):FileResource{
+    public function setNewName(string $name){
         $this->newName = $name;
         return $this;
     }
@@ -151,9 +151,9 @@ abstract class AbstractFileResource
 
     /**
      * @param string $extension
-     * @return FileResource
+     * @return $this
      */
-    public function setNewExtension(string $extension):FileResource{
+    public function setNewExtension(string $extension){
         $this->newExtension = $extension;
         return $this;
     }
@@ -167,9 +167,9 @@ abstract class AbstractFileResource
 
     /**
      * @param string $path
-     * @return FileResource
+     * @return $this
      */
-    public function setNewPath(string $path):FileResource{
+    public function setNewPath(string $path){
         $this->newPath = $path;
         return $this;
     }
