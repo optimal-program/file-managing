@@ -466,7 +466,7 @@ class FileUploader {
 
     public function clear()
     {
-        $this->uploadedFiles = [];
+        $this->uploadedFiles = ["images"=>[],"files"=>[]];
         $this->successMessages = [];
         $this->errorMessages = [];
     }
