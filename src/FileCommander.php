@@ -456,8 +456,8 @@ class FileCommander
         $imageResources = [];
 
         foreach ($foundImages as $image){
-            $name = pathinfo($this->actualPath.".".$image, PATHINFO_FILENAME);
-            $ext = pathinfo($this->actualPath.".".$image, PATHINFO_EXTENSION);
+            $name = pathinfo($this->actualPath."./".$image, PATHINFO_FILENAME);
+            $ext = pathinfo($this->actualPath."./".$image, PATHINFO_EXTENSION);
             if($this->isImage($ext)) {
                 array_push($imageResources, $this->getImage($name, $ext, $addBackupImage, $addThumbs));
             }
