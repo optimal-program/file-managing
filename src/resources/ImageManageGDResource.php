@@ -274,7 +274,12 @@ final class ImageManageGDResource extends ImageManageResource
             $this->image->setNewExtension($extension);
         }
 
-        $filesWithSameName = $this->commander->searchImages($this->image->getName());
+        if($this->image->getNewName() != null){
+            $filesWithSameName = $this->commander->searchImages($this->image->getNewName());
+        } else {
+            $filesWithSameName = $this->commander->searchImages($this->image->getName());
+        }
+
 
         if (!empty($filesWithSameName)) {
             foreach ($filesWithSameName as $file) {
