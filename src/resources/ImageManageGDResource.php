@@ -257,10 +257,16 @@ final class ImageManageGDResource extends ImageManageResource
      */
     public function save(?string $myTarget = null, ?string $extension = null):void {
 
-        if($this->image->getFileDirectoryPath() == $this->image->getFileNewDirectoryPath()){
-            $pom = "_";
-        } else {
-            $pom = "";
+        $sameName = false;
+        if($this->image->getNewName() == null || $this->image->getName() == $this->image->getNewName()) {
+            $sameName = true;
+        }
+
+        $pom = "";
+        if($sameName) {
+            if ($this->image->getFileDirectoryPath() == $this->image->getFileNewDirectoryPath()) {
+                $pom = "_";
+            }
         }
 
         if($myTarget != null){
@@ -315,7 +321,7 @@ final class ImageManageGDResource extends ImageManageResource
                 throw new GDException('Unknown image extension: '.$extension.'');
         }
 
-        if ($pom != "") {
+        if($sameName) {
             $this->commander->removeFile($this->image->getNameExtension());
             rename($fileDestination,$finalDestination);
         }
