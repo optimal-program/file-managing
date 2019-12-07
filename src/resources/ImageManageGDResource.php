@@ -317,6 +317,7 @@ final class ImageManageGDResource extends ImageManageResource
                 break;
             case "webp":
                 imagewebp($this->resource, $fileDestination, 100);
+                break;
             default:
                 throw new GDException('Unknown image extension: '.$extension.'');
         }
