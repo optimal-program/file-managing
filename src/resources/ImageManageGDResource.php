@@ -35,7 +35,6 @@ final class ImageManageGDResource extends ImageManageResource
             case "webp":
                 $resource = imagecreatefromwebp($this->image->getFilePath());
                 break;
-                break;
             default:
                 throw new GDException('Unknown image extension: '.$this->image->getExtension().'');
         }
