@@ -6,8 +6,9 @@ use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\UploadFileException;
 use Optimal\FileManaging\Utils\FilesTypes;
-use Optimal\FileManaging\Utils\ImagesCropSettings;
-use Optimal\FileManaging\Utils\ImagesResizeSettings;
+use Optimal\FileManaging\Utils\ImageCropSettings;
+use Optimal\FileManaging\Utils\ImageResolutionSettings;
+use Optimal\FileManaging\Utils\ImageResolutionsSettings;
 use Optimal\FileManaging\Utils\UploadedFilesLimits;
 
 class FileUploader {
@@ -23,12 +24,19 @@ class FileUploader {
     private $targetDestination;
     private $temporaryDestination;
 
-    private $imagesCropSettings;
-    private $resizeImagesSettings;
-    private $imagesThumbsSettings;
-    private $uploadLimits;
-    private $autoRotateImages;
-    private $backup = true;
+    /** @var ImageCropSettings|null  */
+    private $imageCropSettings = null;
+    /** @var ImageResolutionsSettings|null */
+    private $imageResolutionsSettings = null;
+
+    /** @var ImageCropSettings|null  */
+    private $imageThumbCropSettings = null;
+    /** @var ImageResolutionsSettings|null */
+    private $imageThumbResolutionsSettings = null;
+
+    private $uploadLimits = [];
+    private $autoRotateImages = true;
+    private $backup = false;
 
     private $_FILES;
 
@@ -46,11 +54,7 @@ class FileUploader {
 
     private function __construct(){
 
-        $this->imagesCropSettings = null;
         $this->uploadLimits = new UploadedFilesLimits();
-
-        $this->resizeImagesSettings = null;
-        $this->imagesThumbsSettings = [];
 
         $this->commander = new FileCommander();
         $this->imagesManager = new ImagesManager();
@@ -125,19 +129,6 @@ class FileUploader {
     }
 
     /**
-     * @param ImagesResizeSettings $settings
-     */
-    public function setImagesResizeSettings(ImagesResizeSettings $settings){
-        $this->resizeImagesSettings = $settings;
-    }
-
-    /* TODO *
-    public function setImagesCropSettings(ImagesCropSettings $settings){
-        $this->imagesCropSettings = $settings;
-    }
-    */
-
-    /**
      * @param UploadedFilesLimits $limits
      */
     public function setUploadLimits(UploadedFilesLimits $limits){
@@ -163,14 +154,32 @@ class FileUploader {
     }
 
     /**
+     * @param ImageResolutionsSettings $settings
+     */
+    public function setImageResolutionsSettings(ImageResolutionsSettings $settings){
+        $this->imageResolutionsSettings = $settings;
+    }
+
+    /* TODO - enable crop images
+    public function setImageCropSettings(ImageCropSettings $settings){
+        $this->imageCropSettings = $settings;
+    }
+    */
+
+    /**
      * @param string $destination
-     * @param ImagesResizeSettings $resizeSettings
+     * @param ImageResolutionsSettings $resizeSettings
      * @throws Exception\DirectoryNotFoundException
      */
-    public function addImagesThumbSettings(string $destination, ImagesResizeSettings $resizeSettings/*TODO, ImagesCropSettings $cropSettings*/){
-        $this->commander->checkPath($destination);
-        array_push($this->imagesThumbsSettings, ["destination"=>$destination,"resize"=>$resizeSettings]);
+    public function setThumbResolutionsSettings(ImageResolutionsSettings $resizeSettings){
+        $this->imageThumbResolutionsSettings = $resizeSettings;
     }
+
+    /** TODO - enable crop images
+    public function setImageThumbCropSettings(ImageCropSettings $settings){
+        $this->imageThumbCropSettings = $settings;
+    }
+    */
 
     /**
      * @param bool $rotate
@@ -183,7 +192,7 @@ class FileUploader {
     /**
      * @param string $resource
      */
-    public function setImagesManageResourceType(string $resource = ImagesManager::RESOURCE_TYPE_GD){
+    public function setImageManageResourceType(string $resource = ImagesManager::RESOURCE_TYPE_GD){
         $this->imagesResourceType = $resource;
     }
 
@@ -374,39 +383,8 @@ class FileUploader {
 
         if ($this->commander->isImage($file["only_extension"])) {
 
-            if($this->resizeImagesSettings == null){
-                throw new UploadFileException("No image resize settings defined");
-            }
-
-            $thumbs = [];
-
-            $i = 1;
-            foreach ($this->imagesThumbsSettings as $thumbSetting) {
-
-                $this->imagesManager->setTargetDirectory($this->temporaryDestination);
-                $this->imagesManager->setOutputDirectory($thumbSetting['destination']);
-
-                $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"],
-                    $this->imagesResourceType);
-
-                if ($this->autoRotateImages) {
-                    $imageManageResource->autoRotate();
-                }
-
-                $imageManageResource->resize($thumbSetting["resize"]->getResizeWidth(),
-                    $thumbSetting["resize"]->getResizeHeight(), $thumbSetting["resize"]->getResizeType());
-                $imageManageResource->getImageResource()->setNewName($newName . "_thumb_" . $i);
-                $imageManageResource->save();
-
-                $imageResource = $imageManageResource->getImageResource();
-                $imageResource->applyNewSettings();
-
-                array_push($thumbs, $imageResource);
-                $i++;
-            }
-
             $this->imagesManager->setTargetDirectory($this->temporaryDestination);
-            $this->imagesManager->setOutputDirectory($this->targetDestination);
+            $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
 
             $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
 
@@ -414,29 +392,56 @@ class FileUploader {
                 $imageManageResource->autoRotate();
             }
 
-            $imageManageResource->resize($this->resizeImagesSettings->getResizeWidth(), $this->resizeImagesSettings->getResizeHeight(), $this->resizeImagesSettings->getResizeType());
             $imageManageResource->save();
+            array_push($this->uploadedFiles["images"]["original"], $imageManageResource->getImageResource());
 
-            $imageSource = $imageManageResource->getImageResource();
+            if($this->imageResolutionsSettings != null) {
+                /** @var ImageResolutionSettings $resolutionSettings */
+                foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
+                    $this->commander->addDirectory('variants');
 
-            $this->commander->setPath($this->targetDestination);
+                    $this->imagesManager->setTargetDirectory($this->commander->getRelativePath());
+                    $this->imagesManager->setTargetDirectory($this->commander->getRelativePath() . "/variants");
 
-            if($this->backup) {
-                if (!$this->commander->directoryExists("backup")) {
-                    $this->commander->addDirectory("backup", true);
-                } else {
-                    $this->commander->moveToDirectory("backup");
+                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
+                    $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
+
+                    $variantName = $newName . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
+                    $imageManageResourceV->getImageResource()->setNewName($variantName);
+                    $imageManageResourceV->save(null, $resolutionSettings->getExtension());
                 }
             }
 
-            $ext = $imageSource->getNewExtension() != null ? $imageSource->getNewExtension() : $imageSource->getExtension();
-            $this->commander->copyFileFromAnotherDirectory($this->temporaryDestination, $newName, $ext);
+            if($this->imageThumbResolutionsSettings != null){
+
+                $this->commander->copyPasteFile($newName, $file["only_extension"], $newName."-thumb", $file["only_extension"]);
+
+                $thumbResource = $this->commander->getImage($newName."-thumb", $file["only_extension"], false, false);
+                array_push($this->uploadedFiles["images"]["thumbs"], $thumbResource);
+
+                foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
+
+                    $this->commander->addDirectory('thumbs_variants');
+
+                    $this->imagesManager->setTargetDirectory($this->commander->getRelativePath());
+                    $this->imagesManager->setTargetDirectory($this->commander->getRelativePath()."/thumbs_variants");
+
+                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
+                    $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
+
+                    $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
+                    $imageManageResourceV->getImageResource()->setNewName($variantName);
+                    $imageManageResourceV->save(null, $resolutionSettings->getExtension());
+
+                }
+            }
+
+            if($this->backup) {
+                $this->commander->addDirectory("backup", true);
+                $this->commander->copyFileFromAnotherDirectory($this->targetDestination, $newName, $file["only_extension"]);
+            }
+
             $imageManageResource->removeOriginal();
-
-            $imageResource = $imageManageResource->getImageResource();
-            $imageResource->applyNewSettings();
-
-            array_push($this->uploadedFiles["images"], ["original" => $imageResource, "thumbs" => $thumbs]);
 
         } else {
             $this->commander->setPath($this->temporaryDestination);

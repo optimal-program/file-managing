@@ -2,7 +2,7 @@
 
 namespace Optimal\FileManaging\Utils;
 
-class ImagesCropSettings
+class ImageCropSettings
 {
 
     private $ratio = null;

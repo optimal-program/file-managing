@@ -146,16 +146,14 @@ class FileCommander
         $dirName = rtrim($dirName, "/");
 
         if (!$this->directoryExists($dirName)) {
-
             umask(0000);
             if (!mkdir($this->actualPath . "/" . $dirName, $chmod)) {
                 throw new CreateDirectoryException("Create directory " . $dirName . " into " . $this->actualPath . " wasn't successful, maybe access rights problem.");
             }
+        }
 
-            if ($moveToDir) {
-                $this->moveToDirectory($dirName);
-            }
-
+        if ($moveToDir) {
+            $this->moveToDirectory($dirName);
         }
     }
 
@@ -471,12 +469,13 @@ class FileCommander
      * @param string $name
      * @param string|null $extension
      * @param bool $addBackupImage
-     * @param bool $addThumbs
+     * @param bool $addThumb
      * @return ImageFileResource
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumbs = true):ImageFileResource{
+    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumb = true):ImageFileResource
+    {
 
         if($extension == null){
             $parts = explode(".", $name);
@@ -497,13 +496,14 @@ class FileCommander
             $this->moveUp();
         }
 
-        if($addThumbs && $this->directoryExists("thumbs")){
-            $this->moveToDirectory("thumbs");
-            $imageThumbs = $this->searchImages($imageResource->getName().'_thumb');
-            foreach ($imageThumbs as $imageThumb){
-                $imageResource->addThumb($imageThumb);
+        if($this->fileExists($imageResource->getName()."_thumb", $imageResource->getExtension())){
+            $imageThumb = $this->getImage($imageResource->getName()."_thumb", $imageResource->getExtension(), false, false);
+            $imageResource->setThumb($imageThumb);
+        } else {
+            if($this->fileExists($imageResource->getName()."_thumb", "png")){
+                $imageThumb = $this->getImage($imageResource->getName()."_thumb", "png", false, false);
+                $imageResource->setThumb($imageThumb);
             }
-            $this->moveUp();
         }
 
         return $imageResource;
@@ -638,6 +638,24 @@ class FileCommander
             }
         } else {
             throw new FileException("No file name is defined");
+        }
+
+    }
+
+    /**
+     * @param $name
+     * @param $extension
+     * @param $targetName
+     * @param $targetExtension
+     * @throws DirectoryNotFoundException
+     * @throws FileNotFoundException
+     */
+    public function copyPasteFile($name, $extension, $targetName, $targetExtension){
+
+        if ($this->fileExists($name, $extension)) {
+            copy($this->getRelativePath()."/".$name.".".$extension, $this->getRelativePath()."/".$targetName.".".$targetExtension);
+        } else {
+            throw new FileNotFoundException("File ".$name.".".$extension." not found in ".$this->getRelativePath());
         }
 
     }

@@ -4,10 +4,13 @@ namespace Optimal\FileManaging\resources;
 
 class ImageFileResource extends AbstractImageFileResource
 {
-    protected $thumbs = [];
+    protected $thumb = null;
     protected $backupResource = null;
     protected $lowPreloadQualityResource = null;
     protected $main;
+
+    protected $alt;
+    protected $caption;
 
     /**
      * ImageResource constructor.
@@ -25,34 +28,21 @@ class ImageFileResource extends AbstractImageFileResource
      * @param int $index
      * @return ImageFileResourceThumb|null
      */
-    public function getThumb(int $index): ?ImageFileResourceThumb
+    public function getThumb(): ?ImageFileResourceThumb
     {
-        if(isset($this->thumbs[$index])){
-            return $this->thumbs[$index];
-        }
-        return null;
+        return $this->thumb;
     }
 
     /**
      * @param AbstractFileResource $thumb
      * @throws \Exception
      */
-    public function addThumb(AbstractFileResource $thumb):void
+    public function setThumb(?AbstractFileResource $thumb = null):void
     {
-        if(!$thumb instanceof ImageFileResourceThumb){
+        if($thumb != null && !$thumb instanceof ImageFileResourceThumb){
             throw new \Exception('Wrong class type, expected ImageFileResourceThumb');
         }
-        $this->thumbs[] = $thumb;
-    }
-
-    /**
-     * @param int $index
-     */
-    public function removeThumb(int $index){
-        if(isset($this->thumbs[$index])){
-            unset($this->thumbs[$index]);
-        }
-        $this->thumbs = array_values($this->thumbs);
+        $this->thumb = $thumb;
     }
 
     /**
@@ -109,6 +99,38 @@ class ImageFileResource extends AbstractImageFileResource
     public function setIsMain(bool $isMain): void
     {
         $this->main = $isMain;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAlt()
+    {
+        return $this->alt;
+    }
+
+    /**
+     * @param mixed $alt
+     */
+    public function setAlt($alt): void
+    {
+        $this->alt = $alt;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCaption()
+    {
+        return $this->caption;
+    }
+
+    /**
+     * @param mixed $caption
+     */
+    public function setCaption($caption): void
+    {
+        $this->caption = $caption;
     }
 
 }
