@@ -14,7 +14,7 @@ class ImageResolutionsSettings
     }
 
     public function addResolutionSettings($width, $height = 0, $extension = ImageResolutionSettings::EXTENSION_DEFAULT, $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY){
-        array_push($this->resolutions, new ImageResolutionSettings($width, $height, $resizeType, $extension));
+        array_push($this->resolutions, new ImageResolutionSettings($width, $height, $extension, $resizeType));
     }
 
     public function getResolutionsSettings()
