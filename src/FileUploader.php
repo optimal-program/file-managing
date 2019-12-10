@@ -393,7 +393,7 @@ class FileUploader {
             }
 
             $imageManageResource->save();
-            array_push($this->uploadedFiles["images"]["original"], $imageManageResource->getImageResource());
+            $originalImageResource = $imageManageResource->getImageResource();
 
             if($this->imageResolutionsSettings != null) {
                 /** @var ImageResolutionSettings $resolutionSettings */
@@ -412,12 +412,13 @@ class FileUploader {
                 }
             }
 
+            $thumbImageResource = null;
+
             if($this->imageThumbResolutionsSettings != null){
 
                 $this->commander->copyPasteFile($newName, $file["only_extension"], $newName."-thumb", $file["only_extension"]);
 
-                $thumbResource = $this->commander->getImage($newName."-thumb", $file["only_extension"], false, false);
-                array_push($this->uploadedFiles["images"]["thumbs"], $thumbResource);
+                $thumbImageResource = $this->commander->getImage($newName."-thumb", $file["only_extension"], false, false);
 
                 foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
 
@@ -432,7 +433,6 @@ class FileUploader {
                     $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
                     $imageManageResourceV->getImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
-
                 }
             }
 
@@ -442,6 +442,11 @@ class FileUploader {
             }
 
             $imageManageResource->removeOriginal();
+
+            array_push($this->uploadedFiles["images"], [
+                "original" => $thumbImageResource,
+                "thumb" => $thumbImageResource
+            ]);
 
         } else {
             $this->commander->setPath($this->temporaryDestination);
