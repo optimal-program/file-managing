@@ -408,7 +408,7 @@ class FileUploader {
 
                     $variantName = $newName . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
                     $imageManageResourceV->getImageResource()->setNewName($variantName);
-                    $imageManageResourceV->save(null, $resolutionSettings->getExtension());
+                    $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
             }
 
@@ -431,7 +431,7 @@ class FileUploader {
 
                     $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
                     $imageManageResourceV->getImageResource()->setNewName($variantName);
-                    $imageManageResourceV->save(null, $resolutionSettings->getExtension());
+                    $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
 
                 }
             }
