@@ -683,7 +683,7 @@ class FileCommander
                 $name = $parts[0];
                 $extension = strtolower($parts[1]);
             }
-            
+
             if (copy($path . "/" . $name . "." . $extension, $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
                 return true;
             }

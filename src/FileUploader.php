@@ -456,7 +456,10 @@ class FileUploader {
                 $this->commander->copyFileFromAnotherDirectory($this->targetDestination, $newName, $file["only_extension"]);
             }
 
-            $imageManageResource->removeOriginal();
+            $currPath = $this->commander->getRelativePath();
+            $this->commander->setPath($this->temporaryDestination);
+            $this->commander->removeFile($newName.".".$file["only_extension"]);
+            $this->commander->setPath($currPath);
 
             array_push($this->uploadedFiles["images"], [
                 "original" => $originalImageResource,
