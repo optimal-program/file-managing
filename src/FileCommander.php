@@ -401,7 +401,7 @@ class FileCommander
         }
 
         if(!$this->fileExists($name, $extension)){
-            throw new FileNotFoundException("File: ".$name.".".$extension." not found");
+            throw new FileNotFoundException("File: ".$name.".".$extension." not found in ".$this->getRelativePath());
         }
 
         $actualPath = (string) $this->actualPath;
@@ -683,9 +683,8 @@ class FileCommander
                 $name = $parts[0];
                 $extension = strtolower($parts[1]);
             }
-
-            if (copy($path . "/" . $name . "." . $extension,
-                $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+            
+            if (copy($path . "/" . $name . "." . $extension, $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
                 return true;
             }
 

@@ -98,7 +98,7 @@ class ImagesManager
             return $resource;
 
         } else {
-            throw new FileNotFoundException("File: ".$imgName.".".$imgExtension." not found");
+            throw new FileNotFoundException("File: ".$imgName.".".$imgExtension." not found in ".$this->commander->getRelativePath());
         }
 
     }
