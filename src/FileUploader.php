@@ -400,12 +400,19 @@ class FileUploader {
             $originalImageResource = $imageManageResource->getImageResource();
 
             if($this->imageResolutionsSettings != null) {
+
+                $fromDir = $this->commander->getRelativePath();
+                $this->commander->addDirectory('image_variants', true);
+
                 /** @var ImageResolutionSettings $resolutionSettings */
                 foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
-                    $this->commander->addDirectory('variants');
 
-                    $this->imagesManager->setTargetDirectory($this->commander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath() . "/variants");
+                    $this->commander->addDirectory($newName, true);
+
+                    $this->imagesManager->setTargetDirectory($fromDir);
+                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
+
+                    $this->commander->moveUp();
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
@@ -414,6 +421,8 @@ class FileUploader {
                     $imageManageResourceV->getImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
+
+                $this->commander->setPath($fromDir);
             }
 
             $thumbImageResource = null;
@@ -435,12 +444,17 @@ class FileUploader {
                     $thumbImageResource = clone($originalImageResource);
                 }
 
-                $this->commander->addDirectory('thumbs_variants');
+                $fromDir = $this->commander->getRelativePath();
+                $this->commander->addDirectory('thumb_variants', true);
 
                 foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
 
-                    $this->imagesManager->setTargetDirectory($this->commander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath()."/thumbs_variants");
+                    $this->commander->addDirectory($thumbImageResource->getName(), true);
+
+                    $this->imagesManager->setTargetDirectory($fromDir);
+                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
+
+                    $this->commander->moveUp();
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($thumbImageResource->getName(), $thumbImageResource->getExtension(), $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
@@ -449,6 +463,8 @@ class FileUploader {
                     $imageManageResourceV->getImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
+
+                $this->commander->setPath($fromDir);
             }
 
             if($this->backup) {
