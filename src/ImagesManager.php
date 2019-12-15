@@ -27,7 +27,7 @@ class ImagesManager
      * @param string $dir
      * @throws DirectoryNotFoundException
      */
-    public function setTargetDirectory(string $dir){
+    public function setSourceDirectory(string $dir){
         $this->commander->setPath($dir);
         $this->setOutputDirectory($dir);
     }

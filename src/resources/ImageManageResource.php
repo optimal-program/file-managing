@@ -56,8 +56,19 @@ abstract class ImageManageResource
     /**
      * @return ImageFileResource
      */
-    public function getImageResource():ImageFileResource{
+    public function getSourceImageResource():ImageFileResource{
         return $this->image;
+    }
+
+    /**
+     * @return ImageFileResource
+     * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
+     * @throws \Optimal\FileManaging\Exception\FileNotFoundException
+     */
+    public function getOutputImageResource():ImageFileResource{
+        $targetSource = clone($this->image);
+        $targetSource->applyNewSettings();
+        return $targetSource;
     }
 
     /**

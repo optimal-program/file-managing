@@ -383,7 +383,7 @@ class FileUploader {
 
         if ($this->commander->isImage($file["only_extension"])) {
 
-            $this->imagesManager->setTargetDirectory($this->temporaryDestination);
+            $this->imagesManager->setSourceDirectory($this->temporaryDestination);
             $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
 
             $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
@@ -397,7 +397,7 @@ class FileUploader {
             }
 
             $imageManageResource->save();
-            $originalImageResource = $imageManageResource->getImageResource();
+            $originalImageResource = $imageManageResource->getOutputImageResource();
 
             if($this->imageResolutionsSettings != null) {
 
@@ -409,7 +409,7 @@ class FileUploader {
 
                     $this->commander->addDirectory($newName, true);
 
-                    $this->imagesManager->setTargetDirectory($fromDir);
+                    $this->imagesManager->setSourceDirectory($fromDir);
                     $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
 
                     $this->commander->moveUp();
@@ -418,7 +418,7 @@ class FileUploader {
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
 
                     $variantName = $newName . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
-                    $imageManageResourceV->getImageResource()->setNewName($variantName);
+                    $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
 
@@ -431,15 +431,15 @@ class FileUploader {
 
                 if($this->imageThumbCropSettings != null) {
 
-                    $this->imagesManager->setTargetDirectory($this->temporaryDestination);
+                    $this->imagesManager->setSourceDirectory($this->temporaryDestination);
                     $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
                     // TODO image thumb crop
-                    $imageManageResourceV->getImageResource()->setNewName($newName."-thumb");
+                    $imageManageResourceV->getSourceImageResource()->setNewName($newName."-thumb");
                     $imageManageResourceV->save();
 
-                    $thumbImageResource = $imageManageResourceV->getImageResource();
+                    $thumbImageResource = $imageManageResourceV->getOutputImageResource();
                 } else {
                     $thumbImageResource = clone($originalImageResource);
                 }
@@ -451,7 +451,7 @@ class FileUploader {
 
                     $this->commander->addDirectory($thumbImageResource->getName(), true);
 
-                    $this->imagesManager->setTargetDirectory($fromDir);
+                    $this->imagesManager->setSourceDirectory($fromDir);
                     $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
 
                     $this->commander->moveUp();
@@ -460,7 +460,7 @@ class FileUploader {
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
 
                     $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
-                    $imageManageResourceV->getImageResource()->setNewName($variantName);
+                    $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
 
