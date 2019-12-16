@@ -553,8 +553,8 @@ class FileCommander
                 if (!in_array($extension, FilesTypes::DISALLOWED)) {
 
                     if (!$this->fileExists($name, $extension)) {
-                        $f = fopen($this->actualPath . "/" . $name, "w+");
-                        $f = fwrite($f, $content);
+                        $f = fopen($this->actualPath . "/" . $name.".".$extension, "w+");
+                        fwrite($f, $content);
                         fclose($f);
                         return true;
                     }
