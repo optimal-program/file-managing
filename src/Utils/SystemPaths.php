@@ -7,8 +7,11 @@ class SystemPaths
     /**
      * @return string
      */
-    public static function getScriptPath():string
+    public static function getScriptPath(): string
     {
+        if(empty(strrpos(self::getAbsoluteScriptName(), "/"))){
+            return "";
+        }
         return substr(self::getAbsoluteScriptName(), 0, strrpos(self::getAbsoluteScriptName(), "/"));
     }
 
