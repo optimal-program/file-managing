@@ -5,7 +5,6 @@ namespace Optimal\FileManaging\resources;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
-use Optimal\FileManaging\Utils\FileAdditionalInfo;
 use Optimal\FileManaging\Utils\SystemPaths;
 
 abstract class AbstractFileResource
@@ -48,9 +47,9 @@ abstract class AbstractFileResource
             $path = pathinfo($path, PATHINFO_DIRNAME);
         } else {
             if($extension == null){
-                $parts = explode(".", $name);
-                $name = $parts[0];
-                $extension = $parts[1];
+                $filePath = $path."/".$name;
+                $name = pathinfo($filePath, PATHINFO_FILENAME);
+                $extension = pathinfo($filePath, PATHINFO_EXTENSION);
             }
         }
 
