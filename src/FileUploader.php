@@ -389,13 +389,14 @@ class FileUploader {
      * @param array $file
      * @param string $newName
      * @return bool
+     * @throws DirectoryException
      * @throws DirectoryNotFoundException
      * @throws Exception\CreateDirectoryException
      * @throws Exception\DeleteFileException
      * @throws Exception\FileException
      * @throws Exception\FileNotFoundException
-     * @throws Exception\GDException | \ImagickException
-     * @throws UploadFileException
+     * @throws Exception\GDException
+     * @throws \ImagickException
      */
     private function moveFile(array $file, string $newName):bool
     {
