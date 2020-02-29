@@ -15,14 +15,20 @@ class FileUploader {
 
     private static $instance = null;
 
-    private $commander;
+    /** @var FileCommander|null */
+    private $targetDirCommander;
+    /** @var FileCommander|null */
+    private $tmpDirCommander;
+    /** @var FileCommander|null */
+    private $cacheDirCommander;
+
+    /** @var ImagesManager */
     private $imagesManager;
+    /** @var string */
     private $imagesResourceType;
 
+    /** @var array */
     private $messages;
-
-    private $targetDestination;
-    private $temporaryDestination;
 
     /** @var ImageCropSettings|null  */
     private $imageCropSettings = null;
@@ -34,17 +40,27 @@ class FileUploader {
     /** @var ImageResolutionsSettings|null */
     private $imageThumbResolutionsSettings = null;
 
-    private $uploadLimits = [];
+    /** @var UploadedFilesLimits */
+    private $uploadLimits;
+    /** @var bool  */
     private $autoRotateImages = true;
+    /** @var bool  */
     private $backup = false;
 
+    /** @var array  */
     private $_FILES;
 
+    /** @var array  */
     private $successMessages;
+    /** @var array  */
     private $errorMessages;
 
+    /** @var array  */
     private $uploadedFiles;
 
+    /**
+     * @return FileUploader|null
+     */
     public static function init(){
         if(self::$instance == null){
             self::$instance = new FileUploader();
@@ -52,11 +68,17 @@ class FileUploader {
         return self::$instance;
     }
 
+    /**
+     * FileUploader constructor.
+     */
     private function __construct(){
 
         $this->uploadLimits = new UploadedFilesLimits();
 
-        $this->commander = new FileCommander();
+        $this->targetDirCommander = null;
+        $this->tmpDirCommander = null;
+        $this->cacheDirCommander = null;
+
         $this->imagesManager = new ImagesManager();
 
         $this->_FILES = [];
@@ -102,6 +124,9 @@ class FileUploader {
         $this->imagesResourceType = ImagesManager::RESOURCE_TYPE_GD;
     }
 
+    /**
+     * @param bool $enable
+     */
     public function enableBackup($enable = true){
         $this->backup = $enable;
     }
@@ -120,7 +145,6 @@ class FileUploader {
      */
     private function parseMessage($msg, $file)
     {
-
         $msg = str_replace("{fileName}", $file["only_name"], $msg);
         $msg = str_replace("{fileExtension}", $file["only_extension"], $msg);
         $msg = str_replace("{fileFull}", $file["only_name"] . "." . $file["only_extension"], $msg);
@@ -140,8 +164,9 @@ class FileUploader {
      * @throws Exception\DirectoryNotFoundException
      */
     public function setTemporaryDirectory(string $directory){
-        $this->commander->checkPath($directory);
-        $this->temporaryDestination = $directory;
+        $this->tmpDirCommander = new FileCommander();
+        $this->tmpDirCommander->checkPath($directory);
+        $this->tmpDirCommander->setPath($directory);
     }
 
     /**
@@ -149,8 +174,19 @@ class FileUploader {
      * @throws Exception\DirectoryNotFoundException
      */
     public function setTargetDirectory(string $directory){
-        $this->commander->checkPath($directory);
-        $this->targetDestination = $directory;
+        $this->targetDirCommander = new FileCommander();
+        $this->targetDirCommander->checkPath($directory);
+        $this->targetDirCommander->setPath($directory);
+    }
+
+    /**
+     * @param string $directory
+     * @throws Exception\DirectoryNotFoundException
+     */
+    public function setImagesVariantsCacheDirectory(string $directory){
+        $this->cacheDirCommander = new FileCommander();
+        $this->cacheDirCommander->checkPath($directory);
+        $this->cacheDirCommander->setPath($directory);
     }
 
     /**
@@ -167,9 +203,7 @@ class FileUploader {
     */
 
     /**
-     * @param string $destination
      * @param ImageResolutionsSettings $resizeSettings
-     * @throws Exception\DirectoryNotFoundException
      */
     public function setThumbResolutionsSettings(ImageResolutionsSettings $resizeSettings){
         $this->imageThumbResolutionsSettings = $resizeSettings;
@@ -249,11 +283,7 @@ class FileUploader {
      */
     public function uploadFile(string $inputName,int $index,?string $newFileName = null,bool $overwrite = true)
     {
-
-        try {
-            $this->commander->checkPath($this->temporaryDestination);
-            $this->commander->checkPath($this->targetDestination);
-        } catch (DirectoryNotFoundException $e) {
+        if(!$this->targetDirCommander || !$this->tmpDirCommander){
             throw new DirectoryException("Temporary or target directory is not defined");
         }
 
@@ -266,12 +296,10 @@ class FileUploader {
                 $newName = $newFileName;
             }
 
-            $this->commander->setPath($this->targetDestination);
-
             if(!$overwrite){
                 $i = 1;
-                if($this->commander->fileExists($newName, $file["only_extension"])){
-                    while($this->commander->fileExists($newName."_".$i, $file["only_extension"])){
+                if($this->targetDirCommander->fileExists($newName, $file["only_extension"])){
+                    while($this->targetDirCommander->fileExists($newName."_".$i, $file["only_extension"])){
                         $i++;
                     }
                 }
@@ -371,8 +399,9 @@ class FileUploader {
      */
     private function moveFile(array $file, string $newName):bool
     {
+        $this->tmpDirCommander->addDirectory('upload', true);
 
-        $success = @move_uploaded_file($file['tmp_name'], $this->temporaryDestination . "/" . $newName . "." . $file["only_extension"]);
+        $success = @move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getRelativePath() . "/" . $newName . "." . $file["only_extension"]);
 
         if ($success) {
             array_push($this->successMessages, $this->parseMessage($this->messages["success"], $file));
@@ -381,10 +410,16 @@ class FileUploader {
             return false;
         }
 
-        if ($this->commander->isImage($file["only_extension"])) {
+        $tmpFilePath = $this->tmpDirCommander->getRelativePath();
 
-            $this->imagesManager->setSourceDirectory($this->temporaryDestination);
-            $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
+        if ($this->targetDirCommander->isImage($file["only_extension"])) {
+
+            $this->tmpDirCommander->moveUp();
+            $this->tmpDirCommander->addDirectory('cache', true);
+            $this->tmpDirCommander->addDirectory('optimal-program', true);
+
+            $this->imagesManager->setSourceDirectory($tmpFilePath);
+            $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
             $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
 
@@ -399,20 +434,29 @@ class FileUploader {
             $imageManageResource->save();
             $originalImageResource = $imageManageResource->getOutputImageResource();
 
+            if($this->cacheDirCommander) {
+                $cacheDirPath = $this->cacheDirCommander->getRelativePath();
+                $pathParts = explode("/", $this->targetDirCommander->getRelativePath());
+                foreach ($pathParts as $pathPart) {
+                    $this->cacheDirCommander->addDirectory($pathPart, true);
+                }
+            }
+
             if($this->imageResolutionsSettings != null) {
 
-                $fromDir = $this->commander->getRelativePath();
-                $this->commander->addDirectory('image_variants', true);
+                if(!$this->cacheDirCommander){
+                    throw new DirectoryException("Images variants cache directory is not defined");
+                }
+
+                $this->cacheDirCommander->addDirectory('image_variants', true);
 
                 /** @var ImageResolutionSettings $resolutionSettings */
                 foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
 
-                    $this->commander->addDirectory($newName, true);
+                    $this->tmpDirCommander->addDirectory($newName, true);
 
-                    $this->imagesManager->setSourceDirectory($fromDir);
-                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
-
-                    $this->commander->moveUp();
+                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
+                    $this->imagesManager->setOutputDirectory($this->tmpDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
@@ -422,17 +466,22 @@ class FileUploader {
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
 
-                $this->commander->setPath($fromDir);
+                $this->cacheDirCommander->setPath($cacheDirPath);
+
             }
 
             $thumbImageResource = null;
 
             if($this->imageThumbResolutionsSettings != null){
 
+                if(!$this->cacheDirCommander){
+                    throw new DirectoryException("Images variants cache directory is not defined");
+                }
+
                 if($this->imageThumbCropSettings != null) {
 
-                    $this->imagesManager->setSourceDirectory($this->temporaryDestination);
-                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
+                    $this->imagesManager->setSourceDirectory($tmpFilePath);
+                    $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
                     // TODO image thumb crop
@@ -444,17 +493,13 @@ class FileUploader {
                     $thumbImageResource = clone($originalImageResource);
                 }
 
-                $fromDir = $this->commander->getRelativePath();
-                $this->commander->addDirectory('thumb_variants', true);
+                $this->cacheDirCommander->addDirectory('thumb_variants', true);
 
                 foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
+                    $this->cacheDirCommander->addDirectory($thumbImageResource->getName(), true);
 
-                    $this->commander->addDirectory($thumbImageResource->getName(), true);
-
-                    $this->imagesManager->setSourceDirectory($fromDir);
-                    $this->imagesManager->setOutputDirectory($this->commander->getRelativePath());
-
-                    $this->commander->moveUp();
+                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
+                    $this->imagesManager->setOutputDirectory($this->tmpDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($thumbImageResource->getName(), $thumbImageResource->getExtension(), $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
@@ -464,18 +509,22 @@ class FileUploader {
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
                 }
 
-                $this->commander->setPath($fromDir);
             }
 
+            if($this->cacheDirCommander) {
+                $this->cacheDirCommander->setPath($cacheDirPath);
+            }
+
+            $currDir = $this->targetDirCommander->getRelativePath();
             if($this->backup) {
-                $this->commander->addDirectory("backup", true);
-                $this->commander->copyFileFromAnotherDirectory($this->targetDestination, $newName, $file["only_extension"]);
+                $this->targetDirCommander->addDirectory("backup", true);
+                $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $newName, $file["only_extension"]);
             }
 
-            $currPath = $this->commander->getRelativePath();
-            $this->commander->setPath($this->temporaryDestination);
-            $this->commander->removeFile($newName.".".$file["only_extension"]);
-            $this->commander->setPath($currPath);
+            $this->tmpDirCommander->setPath($tmpFilePath);
+            $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
+
+            $this->targetDirCommander->moveUp();
 
             array_push($this->uploadedFiles["images"], [
                 "original" => $originalImageResource,
@@ -483,11 +532,10 @@ class FileUploader {
             ]);
 
         } else {
-            $this->commander->setPath($this->temporaryDestination);
-            $this->commander->copyFileToAnotherDirectory($this->targetDestination, $newName, $file["only_extension"]);
-            $this->commander->removeFile($newName.".".$file["only_extension"]);
-            $this->commander->moveToDirectory($this->targetDestination);
-            array_push($this->uploadedFiles["files"], $this->commander->getFile($newName, $file["only_extension"]));
+            $this->tmpDirCommander->setPath($tmpFilePath);
+            $this->tmpDirCommander->copyFileToAnotherDirectory($this->targetDirCommander->getRelativePath(), $newName, $file["only_extension"]);
+            $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
+            array_push($this->uploadedFiles["files"], $this->targetDirCommander->getFile($newName, $file["only_extension"]));
         }
 
         return true;
