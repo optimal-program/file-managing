@@ -165,7 +165,6 @@ class FileUploader {
      */
     public function setTemporaryDirectory(string $directory){
         $this->tmpDirCommander = new FileCommander();
-        $this->tmpDirCommander->checkPath($directory);
         $this->tmpDirCommander->setPath($directory);
     }
 
@@ -175,7 +174,6 @@ class FileUploader {
      */
     public function setTargetDirectory(string $directory){
         $this->targetDirCommander = new FileCommander();
-        $this->targetDirCommander->checkPath($directory);
         $this->targetDirCommander->setPath($directory);
     }
 
@@ -185,7 +183,6 @@ class FileUploader {
      */
     public function setImagesVariantsCacheDirectory(string $directory){
         $this->cacheDirCommander = new FileCommander();
-        $this->cacheDirCommander->checkPath($directory);
         $this->cacheDirCommander->setPath($directory);
     }
 
