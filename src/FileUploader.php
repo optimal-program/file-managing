@@ -454,7 +454,7 @@ class FileUploader {
                     $this->tmpDirCommander->addDirectory($newName, true);
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->tmpDirCommander->getRelativePath());
+                    $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
@@ -462,9 +462,9 @@ class FileUploader {
                     $variantName = $newName . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
                     $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
-                }
 
-                $this->cacheDirCommander->setPath($cacheDirPath);
+                    $this->cacheDirCommander->moveUp();
+                }
 
             }
 
@@ -497,7 +497,7 @@ class FileUploader {
                     $this->cacheDirCommander->addDirectory($thumbImageResource->getName(), true);
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->tmpDirCommander->getRelativePath());
+                    $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($thumbImageResource->getName(), $thumbImageResource->getExtension(), $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
@@ -505,6 +505,8 @@ class FileUploader {
                     $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
                     $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
+
+                    $this->cacheDirCommander->moveUp();
                 }
 
             }
