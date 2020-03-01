@@ -227,26 +227,31 @@ class FileCommander
     }
 
     /**
-     * @param string $name
+     * @param string|null $name
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
      */
-    public function clearDir(string $name)
+    public function clearDir(?string $name = null)
     {
-        if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
+        if ($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
-        if ($this->directoryExists($name)) {
-            try {
-                $this->DeleteDir($this->actualPath . "/" . $name);
-            } catch (DeleteDirectoryException $e) {
-                throw $e;
-            } catch (DeleteFileException $e) {
-                throw $e;
+        $path = $this->actualPath;
+        if ($name != null) {
+            $path .= "/" . $name;
+            if (!$this->directoryExists($name)) {
+                throw new DirectoryNotFoundException("Directory : " . $path . " not found");
             }
-        } else {
-            throw new DirectoryNotFoundException("Directory : " . $name . " not found");
         }
+
+        try {
+            $this->DeleteDir($path);
+        } catch (DeleteDirectoryException $e) {
+            throw $e;
+        } catch (DeleteFileException $e) {
+            throw $e;
+        }
+
     }
 
     /**

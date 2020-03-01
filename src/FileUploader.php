@@ -412,10 +412,6 @@ class FileUploader {
 
         if ($this->targetDirCommander->isImage($file["only_extension"])) {
 
-            $this->tmpDirCommander->moveUp();
-            $this->tmpDirCommander->addDirectory('cache', true);
-            $this->tmpDirCommander->addDirectory('optimal-program', true);
-
             $this->imagesManager->setSourceDirectory($tmpFilePath);
             $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
@@ -452,6 +448,7 @@ class FileUploader {
                 foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
 
                     $this->tmpDirCommander->addDirectory($newName, true);
+                    $this->tmpDirCommander->clearDir();
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
                     $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
@@ -494,7 +491,9 @@ class FileUploader {
                 $this->cacheDirCommander->addDirectory('thumb_variants', true);
 
                 foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
+
                     $this->cacheDirCommander->addDirectory($thumbImageResource->getName(), true);
+                    $this->cacheDirCommander->clearDir();
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
                     $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
