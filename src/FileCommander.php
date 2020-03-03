@@ -103,7 +103,7 @@ class FileCommander
         if ($this->directoryExists($name)) {
             $this->actualPath .= "/" . $name;
         } else {
-            throw new DirectoryNotFoundException("Directory: " . $name . " is not exists");
+            throw new DirectoryNotFoundException("Directory: " . $this->actualPath ."/". $name . " is not exists");
         }
     }
 
@@ -148,7 +148,7 @@ class FileCommander
         if (!$this->directoryExists($dirName)) {
             umask(0000);
             if (!mkdir($this->actualPath . "/" . $dirName, $chmod)) {
-                throw new CreateDirectoryException("Create directory " . $dirName . " into " . $this->actualPath . " wasn't successful, maybe access rights problem.");
+                throw new CreateDirectoryException("Creating directory " . $dirName . " in " . $this->actualPath . " is not successful, maybe access rights problem.");
             }
         }
 
@@ -159,7 +159,7 @@ class FileCommander
 
     /**
      * @param bool $sort
-     * @return array
+     * @return array[string]
      * @throws DirectoryNotFoundException
      */
     public function getDirectories(bool $sort = true):array
@@ -182,7 +182,7 @@ class FileCommander
     /**
      * @param string $regex
      * @param bool $sort
-     * @return array
+     * @return array[string]
      * @throws DirectoryNotFoundException
      */
     public function searchDirectories(string $regex = ".*",bool $sort = true):array
@@ -201,27 +201,31 @@ class FileCommander
     }
 
     /**
-     * @param string $name
+     * @param string|null $name
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
      */
-    public function removeDir(string $name)
+    public function removeDir(?string $name = null)
     {
+        if ($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
-        if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
+        $path = $this->actualPath;
+        if ($name) {
+            $path .= "/" . $name;
+            if (!$this->directoryExists($name)) {
+                throw new DirectoryNotFoundException("Directory : " . $path . " not found");
+            }
+        }
 
-        if ($this->directoryExists($name)) {
-            try {
-                $this->DeleteDir($this->actualPath . " / " . $name);
-            } catch (DeleteDirectoryException $e) {
-                throw $e;
-            }
-            if (!rmdir($this->actualPath . " / " . $name)) {
-                throw new DeleteDirectoryException("Remove directory: " . $name . " wasn't successful");
-            }
-        } else {
-            throw new DirectoryNotFoundException("Directory : " . $name . " not found");
+        try {
+            $this->DeleteDir($path);
+        } catch (DeleteDirectoryException $e) {
+            throw $e;
+        }
+
+        if (!rmdir($path)) {
+            throw new DeleteDirectoryException("Remove directory: " . $path . " wasn't successful");
         }
 
     }
@@ -264,14 +268,14 @@ class FileCommander
         $files = array_diff(scandir($path), array(' . ', ' ..'));
 
         foreach ($files as $file) {
-            if (is_dir($path . ' / ' . $file)) {
-                $this->DeleteDir($path . ' / ' . $file);
-                if (!rmdir($path . ' / ' . $file)) {
-                    throw new DeleteDirectoryException("Remove directory: " . $file . " wasn't successful");
+            if (is_dir($path . '/' . $file)) {
+                $this->DeleteDir($path . '/' . $file);
+                if (!rmdir($path . '/' . $file)) {
+                    throw new DeleteDirectoryException("Remove directory: " . $path."/".$file . " wasn't successful");
                 }
             } else {
                 if (!unlink($path . '/' . $file)) {
-                    throw new DeleteFileException("Remove file: " . $file . " wasn't successful");
+                    throw new DeleteFileException("Remove file: " . $path."/".$file . " wasn't successful");
                 }
             }
         }
@@ -290,15 +294,15 @@ class FileCommander
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
         if($this->directoryExists($name)) {
-            if (rename($this->actualPath . ' / ' . $name, $this->actualPath . "/" . $newName)) {
+            if (rename($this->actualPath . '/' . $name, $this->actualPath . "/" . $newName)) {
                 if ($recursive) {
                     $this->renameDirRec($this->actualPath, $name, $newName);
                 }
             } else {
-                throw new DirectoryException("Rename directory: " . $name . " wasn't successful");
+                throw new DirectoryException("Renaming directory: " . $this->actualPath ."/". $name . " is not successful");
             }
         } else {
-            throw new DirectoryNotFoundException("Directory : " . $name . " not found");
+            throw new DirectoryNotFoundException("Directory : " . $this->actualPath ."/". $name . " not found");
         }
     }
 
@@ -311,18 +315,16 @@ class FileCommander
      */
     private function renameDirRec(?string $path, string $name,string $newName)
     {
-
         foreach ($this->getDirectories() as $dir) {
 
             if ($dir == $name) {
-                if (!rename($path . ' / ' . $dir, $path . "/" . $newName)) {
-                    throw new DirectoryException("Rename directory: " . $dir . " wasn't successful");
+                if (!rename($path . '/' . $dir, $path . "/" . $newName)) {
+                    throw new DirectoryException("Renaming directory: " . $path."/".$dir . " is not successful");
                 }
             }
 
-            $this->renameDirRec($path . ' / ' . $dir, $name, $newName);
+            $this->renameDirRec($path . '/' . $dir, $name, $newName);
         }
-
     }
 
     /**
@@ -351,7 +353,7 @@ class FileCommander
     public function isImage(string $extension):bool
     {
         $extension = strtolower($extension);
-        $imagesExtension = ["jpg", "png", "jpeg", "gif", "tiff", "bmp"];
+        $imagesExtension = ["jpg", "png", "jpeg", "jfif", "webp", "gif", "tiff", "bmp"];
         return in_array($extension, $imagesExtension);
     }
 
@@ -397,16 +399,15 @@ class FileCommander
      * @throws FileException
      * @throws FileNotFoundException
      */
-    public function getFile(string $name,?string $extension = null){
+    public function getFile(string $name, ?string $extension = null){
 
         if($extension == null){
-            $parts = explode(".", $name);
-            $name = $parts[0];
-            $extension = strtolower($parts[1]);
+            $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+            $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
         }
 
         if(!$this->fileExists($name, $extension)){
-            throw new FileNotFoundException("File: ".$name.".".$extension." not found in ".$this->getRelativePath());
+            throw new FileNotFoundException("File: ".$this->actualPath."/".$name.".".$extension." not found");
         }
 
         $actualPath = (string) $this->actualPath;
@@ -448,7 +449,7 @@ class FileCommander
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
-        $foundImages = preg_grep("~$pattern~", array_filter(scandir($this->actualPath), function ($v){
+        $foundImages = preg_grep("~$pattern\.(jpg|png|jpeg|jfif|webp|gif|tiff|bmp)~", array_filter(scandir($this->actualPath), function ($v){
             return !is_dir($this->actualPath.'/'.$v);
         }));
 
@@ -461,9 +462,7 @@ class FileCommander
         foreach ($foundImages as $image){
             $name = pathinfo($this->actualPath."./".$image, PATHINFO_FILENAME);
             $ext = pathinfo($this->actualPath."./".$image, PATHINFO_EXTENSION);
-            if($this->isImage($ext)) {
-                array_push($imageResources, $this->getImage($name, $ext, $addBackupImage, $addThumbs));
-            }
+            array_push($imageResources, $this->getImage($name, $ext, $addBackupImage, $addThumbs));
         }
 
         return $imageResources;
@@ -483,9 +482,8 @@ class FileCommander
     {
 
         if($extension == null){
-            $parts = explode(".", $name);
-            $name = $parts[0];
-            $extension = strtolower($parts[1]);
+            $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+            $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
         }
 
         $actualPath = (string) $this->actualPath;
@@ -537,21 +535,20 @@ class FileCommander
 
     /**
      * @param string $name
-     * @param string $extension
+     * @param string|null $extension
      * @param string $content
      * @return bool
      * @throws CreateFileException
      * @throws DirectoryNotFoundException
      */
-    public function createFile(string $name,string $extension,string $content = "\n"):bool
+    public function createFile(string $name,?string $extension = null,string $content = "\n"):bool
     {
 
         if ($name != "") {
 
-            if(file_exists($this->actualPath."/".$name)) {
-                $parts = explode(".", $name);
-                $name = $parts[0];
-                $extension = strtolower($parts[1]);
+            if($extension == null) {
+                $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+                $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
             }
 
             if ($extension != "") {
@@ -584,15 +581,14 @@ class FileCommander
      * @param bool $append
      * @throws CreateFileException
      */
-    public function writeToFile(string $name,string $extension,string $content = "\n",bool $append = true)
+    public function writeToFile(string $name,?string $extension,string $content = "\n",bool $append = true)
     {
 
         if ($name != "") {
 
-            if (file_exists($this->actualPath . "/" . $name)) {
-                $parts = explode(".", $name);
-                $name = $parts[0];
-                $extension = strtolower($parts[1]);
+            if($extension == null) {
+                $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+                $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
             }
 
             if ($extension != "") {
@@ -626,10 +622,9 @@ class FileCommander
         if ($name != "") {
             if($newName != "") {
 
-                if ($extension == null) {
-                    $parts = explode(".", $name);
-                    $name = $parts[0];
-                    $extension = strtolower($parts[1]);
+                if($extension == null) {
+                    $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+                    $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
                 }
 
                 if (rename($this->actualPath . "/" . $name . "." . $extension, $this->actualPath . "/" . $newName . "." . $extension)) {
@@ -660,7 +655,7 @@ class FileCommander
         if ($this->fileExists($name, $extension)) {
             copy($this->getRelativePath()."/".$name.".".$extension, $this->getRelativePath()."/".$targetName.".".$targetExtension);
         } else {
-            throw new FileNotFoundException("File ".$name.".".$extension." not found in ".$this->getRelativePath());
+            throw new FileNotFoundException("File ".$this->actualPath."/".$name.".".$extension." not found");
         }
 
     }
@@ -681,12 +676,11 @@ class FileCommander
             if (!is_dir($path)) {
                 $name = pathinfo($path, PATHINFO_FILENAME);
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
-            }
-
-            if ($extension == null) {
-                $parts = explode(".", $name);
-                $name = $parts[0];
-                $extension = strtolower($parts[1]);
+            } else {
+                if($extension == null) {
+                    $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+                    $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
+                }
             }
 
             if (copy($path . "/" . $name . "." . $extension, $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
@@ -716,13 +710,11 @@ class FileCommander
             if (!is_dir($path)) {
                 $name = pathinfo($path, PATHINFO_FILENAME);
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
-            }
-
-
-            if ($extension == null) {
-                $parts = explode(".", $name);
-                $name = $parts[0];
-                $extension = strtolower($parts[1]);
+            } else {
+                if($extension == null) {
+                    $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+                    $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
+                }
             }
 
             if (copy($this->actualPath . "/" . $name . "." . $extension,
@@ -746,11 +738,11 @@ class FileCommander
     {
         if ($pattern != "") {
 
-            $files = glob($this->actualPath . "/" .$pattern);
+            $files = glob($this->actualPath . "/" . $pattern);
 
             foreach ($files as $file) {
                 if (!unlink($file)) {
-                    throw new DeleteFileException("Remove file: " . $file . " wasn't successful");
+                    throw new DeleteFileException("Removing file: " . $this->actualPath."/".$file . " is not successful");
                 }
             }
 
