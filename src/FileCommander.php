@@ -674,6 +674,7 @@ class FileCommander
         if (file_exists($path)) {
 
             if (!is_dir($path)) {
+                $path = pathinfo($path, PATHINFO_DIRNAME);
                 $name = pathinfo($path, PATHINFO_FILENAME);
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
             } else {
