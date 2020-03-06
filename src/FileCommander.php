@@ -265,7 +265,7 @@ class FileCommander
      */
     private function DeleteDir(string $path)
     {
-        $files = array_diff(scandir($path), array(' . ', ' ..'));
+        $files = array_diff(scandir($path), array('.', '..'));
 
         foreach ($files as $file) {
             if (is_dir($path . '/' . $file)) {

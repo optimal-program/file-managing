@@ -12,7 +12,7 @@ final class FilesTypes
 {
 
     // IMAGES
-    const IMAGES_JPG = ["jpg","jpeg"];
+    const IMAGES_JPG = ["jpg","jpeg","jfif"];
     const IMAGES_png = ["png"];
     const IMAGES_gif = ["gif"];
 
