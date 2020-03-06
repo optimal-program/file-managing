@@ -470,7 +470,7 @@ class FileUploader {
             }
 
             $thumbImageResource = null;
-            $thumbImageResourceVariants = [null];
+            $thumbImageResourceVariants = [];
 
             if($this->imageThumbResolutionsSettings != null){
 
