@@ -436,6 +436,8 @@ class FileUploader {
                 }
             }
 
+            $originalImageResourceVariants = [];
+
             if($this->imageResolutionsSettings != null) {
 
                 if(!$this->cacheDirCommander){
@@ -447,8 +449,8 @@ class FileUploader {
                 /** @var ImageResolutionSettings $resolutionSettings */
                 foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
 
-                    $this->tmpDirCommander->addDirectory($newName, true);
-                    $this->tmpDirCommander->clearDir();
+                    $this->cacheDirCommander->addDirectory($newName, true);
+                    $this->cacheDirCommander->clearDir();
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
                     $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
@@ -460,12 +462,15 @@ class FileUploader {
                     $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
 
+                    array_push($originalImageResourceVariants, $imageManageResourceV->getOutputImageResource());
+
                     $this->cacheDirCommander->moveUp();
                 }
 
             }
 
             $thumbImageResource = null;
+            $thumbImageResourceVariants = [null];
 
             if($this->imageThumbResolutionsSettings != null){
 
@@ -505,6 +510,8 @@ class FileUploader {
                     $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
 
+                    array_push($thumbImageResourceVariants, $imageManageResourceV->getOutputImageResource());
+
                     $this->cacheDirCommander->moveUp();
                 }
 
@@ -526,8 +533,14 @@ class FileUploader {
             $this->targetDirCommander->moveUp();
 
             array_push($this->uploadedFiles["images"], [
-                "original" => $originalImageResource,
-                "thumb" => $thumbImageResource
+                "main" => [
+                    "original" => $originalImageResource,
+                    "variants" => $originalImageResourceVariants
+                ],
+                "thumb" => [
+                    "original" => $thumbImageResource,
+                    "variants" => $thumbImageResourceVariants
+                ]
             ]);
 
         } else {
