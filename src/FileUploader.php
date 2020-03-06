@@ -467,6 +467,8 @@ class FileUploader {
                     $this->cacheDirCommander->moveUp();
                 }
 
+                $this->cacheDirCommander->moveUp();
+
             }
 
             $thumbImageResource = null;
