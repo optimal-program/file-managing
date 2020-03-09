@@ -674,9 +674,9 @@ class FileCommander
         if (file_exists($path)) {
 
             if (!is_dir($path)) {
-                $path = pathinfo($path, PATHINFO_DIRNAME);
                 $name = pathinfo($path, PATHINFO_FILENAME);
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
+                $path = pathinfo($path, PATHINFO_DIRNAME);
             } else {
                 if($extension == null) {
                     $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
@@ -711,6 +711,7 @@ class FileCommander
             if (!is_dir($path)) {
                 $name = pathinfo($path, PATHINFO_FILENAME);
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
+                $path = pathinfo($path, PATHINFO_DIRNAME);
             } else {
                 if($extension == null) {
                     $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
