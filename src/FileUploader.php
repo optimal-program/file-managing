@@ -444,12 +444,11 @@ class FileUploader {
                     throw new DirectoryException("Images variants cache directory is not defined");
                 }
 
-                $this->cacheDirCommander->addDirectory('image_variants', true);
-
                 /** @var ImageResolutionSettings $resolutionSettings */
                 foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
 
                     $this->cacheDirCommander->addDirectory($newName, true);
+                    $this->cacheDirCommander->addDirectory('image_variants', true);
                     $this->cacheDirCommander->clearDir();
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
@@ -465,9 +464,8 @@ class FileUploader {
                     array_push($originalImageResourceVariants, $imageManageResourceV->getOutputImageResource());
 
                     $this->cacheDirCommander->moveUp();
+                    $this->cacheDirCommander->moveUp();
                 }
-
-                $this->cacheDirCommander->moveUp();
 
             }
 
@@ -495,11 +493,12 @@ class FileUploader {
                     $thumbImageResource = clone($originalImageResource);
                 }
 
-                $this->cacheDirCommander->addDirectory('thumb_variants', true);
+                $this->cacheDirCommander->addDirectory('thumbs', true);
 
                 foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
 
                     $this->cacheDirCommander->addDirectory($thumbImageResource->getName(), true);
+                    $this->cacheDirCommander->addDirectory('thumb_variants', true);
                     $this->cacheDirCommander->clearDir();
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
@@ -514,6 +513,7 @@ class FileUploader {
 
                     array_push($thumbImageResourceVariants, $imageManageResourceV->getOutputImageResource());
 
+                    $this->cacheDirCommander->moveUp();
                     $this->cacheDirCommander->moveUp();
                 }
 
