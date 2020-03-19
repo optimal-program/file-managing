@@ -54,7 +54,7 @@ final class FilesTypes
     const WEB = ["css","js","html"];
 
     // ALL
-    const ALL_SUPPORTED_FILES = ["jpg","jpeg","png","gif","doc","docx","xls","xlsx","ppt","pptx","odt","ott","ods","sdc","odp","sdd","pdf","zip","7z","rar","csv","xml","json","css","js","html"];
+    const ALL_SUPPORTED_FILES = ["jpg", "jfif", "jpeg","png","gif","doc","docx","xls","xlsx","ppt","pptx","odt","ott","ods","sdc","odp","sdd","pdf","zip","7z","rar","csv","xml","json","css","js","html"];
 
     // FILES
     const NO_IMAGES = ["doc","docx","xls","xlsx","ppt","pptx","odt","ott","ods","sdc","odp","sdd","pdf","zip","7z","rar","csv","xml","json","css","js","html"];

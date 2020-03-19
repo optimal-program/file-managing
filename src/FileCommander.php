@@ -353,8 +353,7 @@ class FileCommander
     public function isImage(string $extension):bool
     {
         $extension = strtolower($extension);
-        $imagesExtension = ["jpg", "png", "jpeg", "jfif", "webp", "gif", "tiff", "bmp"];
-        return in_array($extension, $imagesExtension);
+        return in_array($extension, FilesTypes::IMAGES);
     }
 
     /**

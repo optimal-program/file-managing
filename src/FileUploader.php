@@ -367,9 +367,7 @@ class FileUploader {
             return false;
         }
 
-        if (preg_match("/php|phtml[0-9]*?/i", $file["only_extension"]) || in_array($file["only_extension"],
-                FilesTypes::DISALLOWED) || !in_array($file["only_extension"],
-                $this->uploadLimits->getAllowedExtensions())) {
+        if (preg_match("/php|phtml[0-9]*?/i", $file["only_extension"]) || in_array($file["only_extension"], FilesTypes::DISALLOWED) || !in_array($file["only_extension"], $this->uploadLimits->getAllowedExtensions())) {
             array_push($this->errorMessages, $this->parseMessage($this->messages["notAllowed"], $file));
             return false;
         }
