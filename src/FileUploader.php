@@ -397,7 +397,6 @@ class FileUploader {
      */
     private function moveFile(array $file, string $newName):bool
     {
-        $this->tmpDirCommander->addDirectory('upload', true);
 
         $success = @move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getRelativePath() . "/" . $newName . "." . $file["only_extension"]);
 
@@ -463,7 +462,6 @@ class FileUploader {
 
                     array_push($originalImageResourceVariants, $imageManageResourceV->getOutputImageResource());
 
-                    $this->cacheDirCommander->moveUp();
                     $this->cacheDirCommander->moveUp();
                 }
 
