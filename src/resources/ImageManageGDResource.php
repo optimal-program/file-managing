@@ -24,6 +24,7 @@ final class ImageManageGDResource extends ImageManageResource
         switch ($this->image->getExtension()) {
             case "jpg":
             case "jpeg":
+            case "jfif":
                 $resource = imagecreatefromjpeg($this->image->getFilePath());
                 break;
             case "png":
@@ -233,6 +234,7 @@ final class ImageManageGDResource extends ImageManageResource
 
             case "jpg":
             case "jpeg":
+            case "jfif":
                 header("Content-Type: image/jpeg");
                 imagejpeg($this->GDResource);
                 break;
@@ -309,6 +311,7 @@ final class ImageManageGDResource extends ImageManageResource
         switch ($extension) {
             case "jpg":
             case "jpeg":
+            case "jfif":
                 imagejpeg($this->resource, $fileDestination, 100);
                 break;
             case "png":
