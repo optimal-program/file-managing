@@ -15,6 +15,12 @@ class FileUploader {
 
     private static $instance = null;
 
+    /** @var array  */
+    private $_FILES;
+
+    /** @var array */
+    private $messages;
+
     /** @var FileCommander|null */
     private $targetDirCommander;
     /** @var FileCommander|null */
@@ -27,8 +33,11 @@ class FileUploader {
     /** @var string */
     private $imagesResourceType;
 
-    /** @var array */
-    private $messages;
+    /** @var int */
+    private $maxImageWidth;
+
+    /** @var int */
+    private $maxImageHeight;
 
     /** @var ImageCropSettings|null  */
     private $imageCropSettings = null;
@@ -46,9 +55,6 @@ class FileUploader {
     private $autoRotateImages = true;
     /** @var bool  */
     private $backup = false;
-
-    /** @var array  */
-    private $_FILES;
 
     /** @var array  */
     private $successMessages;
@@ -104,6 +110,9 @@ class FileUploader {
                 }
             }
         }
+
+        $this->maxImageWidth = 3840;
+        $this->maxImageHeight = 2160;
 
         $this->uploadedFiles = ["images"=>[],"files"=>[]];
         $this->successMessages = [];
@@ -225,6 +234,38 @@ class FileUploader {
      */
     public function setImageManageResourceType(string $resource = ImagesManager::RESOURCE_TYPE_GD){
         $this->imagesResourceType = $resource;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxImageWidth(): int
+    {
+        return $this->maxImageWidth;
+    }
+
+    /**
+     * @param int $maxImageWidth
+     */
+    public function setMaxImageWidth(int $maxImageWidth = 3840): void
+    {
+        $this->maxImageWidth = $maxImageWidth;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxImageHeight(): int
+    {
+        return $this->maxImageHeight;
+    }
+
+    /**
+     * @param int $maxImageHeight
+     */
+    public function setMaxImageHeight(int $maxImageHeight = 2160): void
+    {
+        $this->maxImageHeight = $maxImageHeight;
     }
 
     /**
@@ -418,12 +459,15 @@ class FileUploader {
                 $imageManageResource->autoRotate();
             }
 
+            $imageManageResource->resize($this->maxImageWidth, $this->maxImageHeight);
+
             if($this->imageCropSettings != null){
                 // TODO image crop
             }
 
             $imageManageResource->save();
             $originalImageResource = $imageManageResource->getOutputImageResource();
+            $originalImageResourceExt = $originalImageResource->getNewExtension() != null ? $originalImageResource->getNewExtension() : $originalImageResource->getExtension();
 
             if($this->cacheDirCommander) {
                 $cacheDirPath = $this->cacheDirCommander->getRelativePath();
@@ -444,6 +488,10 @@ class FileUploader {
                 /** @var ImageResolutionSettings $resolutionSettings */
                 foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
 
+                    if($resolutionSettings->getWidth() > $this->maxImageWidth || $resolutionSettings->getHeight() > $this->maxImageHeight){
+                        continue;
+                    }
+
                     $this->cacheDirCommander->addDirectory($newName, true);
                     $this->cacheDirCommander->addDirectory('image_variants', true);
                     $this->cacheDirCommander->clearDir();
@@ -451,7 +499,7 @@ class FileUploader {
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
                     $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
 
-                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
+                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
 
                     $variantName = $newName . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
@@ -475,11 +523,10 @@ class FileUploader {
                 }
 
                 if($this->imageThumbCropSettings != null) {
-
-                    $this->imagesManager->setSourceDirectory($tmpFilePath);
+                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
                     $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
-                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
+                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
                     // TODO image thumb crop
                     $imageManageResourceV->getSourceImageResource()->setNewName($newName."-thumb");
                     $imageManageResourceV->save();
@@ -488,6 +535,8 @@ class FileUploader {
                 } else {
                     $thumbImageResource = clone($originalImageResource);
                 }
+
+                $thumbImageResourceExt = $thumbImageResource->getNewExtension() != null ? $thumbImageResource->getNewExtension() : $thumbImageResource->getExtension();
 
                 $this->cacheDirCommander->addDirectory('thumbs', true);
 
@@ -500,7 +549,7 @@ class FileUploader {
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
                     $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
 
-                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($thumbImageResource->getName(), $thumbImageResource->getExtension(), $this->imagesResourceType);
+                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($thumbImageResource->getName(), $thumbImageResourceExt, $this->imagesResourceType);
                     $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
 
                     $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
