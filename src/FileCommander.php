@@ -340,7 +340,7 @@ class FileCommander
         if($extension == null){
             $parts = explode(".", $name);
             $name = $parts[0];
-            $extension = strtolower($parts[1]);
+            $extension = $parts[1];
         }
 
         return file_exists($this->actualPath . "/" . $name.".".$extension);
