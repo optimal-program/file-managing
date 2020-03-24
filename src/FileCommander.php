@@ -448,7 +448,7 @@ class FileCommander
 
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
 
-        $foundImages = preg_grep("~$pattern\.(jpg|png|jpeg|jfif|webp|gif|tiff|bmp)~", array_filter(scandir($this->actualPath), function ($v){
+        $foundImages = preg_grep("~$pattern\.(jpg|JPG|jpeg|JPEG|jfif|png|webp|gif|tiff|bmp)~", array_filter(scandir($this->actualPath), function ($v){
             return !is_dir($this->actualPath.'/'.$v);
         }));
 
