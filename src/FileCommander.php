@@ -481,8 +481,8 @@ class FileCommander
     {
 
         if($extension == null){
-            $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
             $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
+            $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
         }
 
         $actualPath = (string) $this->actualPath;
