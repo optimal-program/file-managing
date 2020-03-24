@@ -74,9 +74,8 @@ class ImagesManager
         }
 
         if($imgExtension == null){
-            $parts = explode(".", $imgName);
-            $imgName = $parts[0];
-            $imgExtension = $parts[1];
+            $imgExtension = pathinfo($this->commander->getAbsolutePath()."/".$imgName, PATHINFO_EXTENSION);
+            $imgName = pathinfo($this->commander->getAbsolutePath()."/".$imgName, PATHINFO_FILENAME);
         }
 
         if($this->commander->fileExists($imgName, $imgExtension)){

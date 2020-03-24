@@ -21,7 +21,7 @@ final class ImageManageGDResource extends ImageManageResource
         $this->resource = null;
         $resource = false;
 
-        switch ($this->image->getExtension()) {
+        switch (strtolower($this->image->getExtension())) {
             case "jpg":
             case "jpeg":
             case "jfif":
@@ -230,7 +230,7 @@ final class ImageManageGDResource extends ImageManageResource
             $extension = $this->image->getNewExtension();
         }
 
-        switch ($extension) {
+        switch (strtolower($extension)) {
 
             case "jpg":
             case "jpeg":
@@ -308,7 +308,7 @@ final class ImageManageGDResource extends ImageManageResource
         $fileDestination = $this->commander->getAbsolutePath()."/".$pom.$this->image->getNewNameExtension();
         $finalDestination = $this->commander->getAbsolutePath()."/".$this->image->getNewNameExtension();
 
-        switch ($extension) {
+        switch (strtolower($extension)) {
             case "jpg":
             case "jpeg":
             case "jfif":
