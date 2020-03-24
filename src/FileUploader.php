@@ -543,7 +543,6 @@ class FileUploader {
                 foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
 
                     $this->cacheDirCommander->addDirectory($thumbImageResource->getName(), true);
-                    $this->cacheDirCommander->addDirectory('thumb_variants', true);
                     $this->cacheDirCommander->clearDir();
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
