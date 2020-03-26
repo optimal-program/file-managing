@@ -4,11 +4,18 @@ namespace Optimal\FileManaging\Utils;
 
 class SystemPaths
 {
+
+    /** @var string|null  */
+    public static $absolutePath = null;
+
     /**
      * @return string
      */
     public static function getScriptPath(): string
     {
+        if(self::$absolutePath != null){
+            return self::$absolutePath;
+        }
         if(empty(strrpos(self::getAbsoluteScriptName(), "/"))){
             return "";
         }

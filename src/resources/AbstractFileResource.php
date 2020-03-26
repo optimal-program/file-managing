@@ -38,7 +38,10 @@ abstract class AbstractFileResource
     function __construct(string $path,?string $name = null,?string $extension = null){
 
         if(!file_exists($path)){
-            throw new FileException("Path: ".$path." is not valid");
+            $path = SystemPaths::getScriptPath()."/".$path;
+            if(!file_exists($path)) {
+                throw new FileException("Path: " . $path . " is not valid");
+            }
         }
 
         if(!is_dir($path)){
