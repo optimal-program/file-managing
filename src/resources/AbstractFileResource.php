@@ -5,6 +5,7 @@ namespace Optimal\FileManaging\resources;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
+use Optimal\FileManaging\FileCommander;
 use Optimal\FileManaging\Utils\SystemPaths;
 
 abstract class AbstractFileResource
@@ -33,38 +34,30 @@ abstract class AbstractFileResource
      * @param string $path
      * @param string|null $name
      * @param string|null $extension
-     * @throws FileException
+     * @throws DirectoryNotFoundException
      */
-    function __construct(string $path,?string $name = null,?string $extension = null){
+    function __construct(string $path,?string $name = null,?string $extension = null)
+    {
+        $validPath = FileCommander::checkPath($path);
 
-        if(!file_exists($path)){
-            $path = SystemPaths::getScriptPath()."/".$path;
-            if(!file_exists($path)) {
-                throw new FileException("Path: " . $path . " is not valid");
-            }
-        }
-
-        if(!is_dir($path)){
-            $name = pathinfo($path, PATHINFO_FILENAME);
-            $extension = pathinfo($path, PATHINFO_EXTENSION);
-            $path = pathinfo($path, PATHINFO_DIRNAME);
+        if (!is_dir($validPath)) {
+            $name = pathinfo($validPath, PATHINFO_FILENAME);
+            $extension = pathinfo($validPath, PATHINFO_EXTENSION);
+            $validPath = pathinfo($validPath, PATHINFO_DIRNAME);
         } else {
-            if($extension == null){
-                $filePath = $path."/".$name;
+            if ($extension == null) {
+                $filePath = $validPath . "/" . $name;
                 $name = pathinfo($filePath, PATHINFO_FILENAME);
                 $extension = pathinfo($filePath, PATHINFO_EXTENSION);
             }
         }
 
-        if(file_exists($path."/".$name.".".$extension)){
-            $this->name = $name;
-            $this->extension = $extension;
-            $this->path = $path;
-            $this->setFileInfo();
-        } else {
-            throw new FileException("File ".$name.".".$extension." not found");
-        }
+        FileCommander::checkPath($validPath . "/" . $name . "." . $extension);
 
+        $this->name = $name;
+        $this->extension = $extension;
+        $this->path = $validPath;
+        $this->setFileInfo();
     }
 
     protected function setFileInfo(){

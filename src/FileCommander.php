@@ -24,15 +24,43 @@ class FileCommander
 
     /**
      * @param string $path
+     * @return string|null
+     */
+    public static function getValidPath(string $path):?string
+    {
+        $path = str_replace("\\", "/", $path);
+
+        if(file_exists($path)){
+            return $path;
+        } else {
+            $path = SystemPaths::getScriptPath()."/".$path;
+            if(file_exists($path)){
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $path
      * @return string
      * @throws DirectoryNotFoundException
      */
-    public function checkPath(string $path):string
+    public static function checkPath(string $path):string
     {
-        if (!file_exists($path)) {
-            throw new DirectoryNotFoundException("Directory: " . $path . " not found, check whether you typed path to directory from root of project");
+        $validPath = self::getValidPath($path);
+        $relative = true;
+
+        if($validPath == SystemPaths::getScriptPath()."/".$path && $validPath == $path){
+            $relative = false;
         }
-        return $path;
+
+        if ($validPath == null) {
+            throw new DirectoryNotFoundException("Directory with ".($relative ? "relative" : "absolute")." path: '" . $path . "' ".($relative ? " and with absolute path: '".SystemPaths::getScriptPath()."/".$path."'" : "")." not found ");
+        }
+
+        return $validPath;
     }
 
     /**
@@ -42,8 +70,7 @@ class FileCommander
     public function setPath(string $path):void
     {
         try {
-            $path = str_replace("\\", "/", $path);
-            $path = $this->checkPath($path);
+            $path = self::checkPath($path);
         } catch (DirectoryNotFoundException $e) {
             throw $e;
         }
@@ -59,7 +86,12 @@ class FileCommander
     public function getAbsolutePath():?string
     {
         if($this->actualPath == null) throw new DirectoryNotFoundException("No directory set");
-        return $this->actualPath;
+
+        if(strpos($this->actualPath, SystemPaths::getScriptPath()) !== false){
+            return $this->actualPath;
+        }
+
+        return $this->actualPath."/".SystemPaths::getScriptPath();
     }
 
     /**
@@ -540,7 +572,7 @@ class FileCommander
      * @throws CreateFileException
      * @throws DirectoryNotFoundException
      */
-    public function createFile(string $name,?string $extension = null,string $content = "\n"):bool
+    public function createFile(string $name, ?string $extension = null, string $content = "\n"):bool
     {
 
         if ($name != "") {
@@ -615,7 +647,7 @@ class FileCommander
      * @return bool
      * @throws FileException
      */
-    public function renameFileTo(string $name,?string $extension = null,string $newName = ""):bool
+    public function renameFileTo(string $name, ?string $extension = null, string $newName = ""):bool
     {
 
         if ($name != "") {
@@ -642,17 +674,17 @@ class FileCommander
     }
 
     /**
-     * @param $name
-     * @param $extension
-     * @param $targetName
-     * @param $targetExtension
+     * @param string $name
+     * @param string $extension
+     * @param string $targetName
+     * @param string $targetExtension
      * @throws DirectoryNotFoundException
      * @throws FileNotFoundException
      */
-    public function copyPasteFile($name, $extension, $targetName, $targetExtension){
+    public function copyPasteFile(string $name, string $extension, string $targetName, string $targetExtension){
 
         if ($this->fileExists($name, $extension)) {
-            copy($this->getRelativePath()."/".$name.".".$extension, $this->getRelativePath()."/".$targetName.".".$targetExtension);
+            copy($this->actualPath."/".$name.".".$extension, $this->actualPath."/".$targetName.".".$targetExtension);
         } else {
             throw new FileNotFoundException("File ".$this->actualPath."/".$name.".".$extension." not found");
         }
@@ -670,63 +702,58 @@ class FileCommander
      */
     public function copyFileFromAnotherDirectory(string $path,?string $name = null,?string $extension = null,?string $renameTo = null):bool
     {
-        if (file_exists($path)) {
+        $validPath = self::checkPath($path);
 
-            if (!is_dir($path)) {
-                $name = pathinfo($path, PATHINFO_FILENAME);
-                $extension = pathinfo($path, PATHINFO_EXTENSION);
-                $path = pathinfo($path, PATHINFO_DIRNAME);
-            } else {
-                if($extension == null) {
-                    $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
-                    $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
-                }
-            }
-
-            if (copy($path . "/" . $name . "." . $extension, $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
-                return true;
-            }
-
-            return false;
-
+        if (!is_dir($validPath)) {
+            $name = pathinfo($validPath, PATHINFO_FILENAME);
+            $extension = pathinfo($validPath, PATHINFO_EXTENSION);
+            $validPath = pathinfo($validPath, PATHINFO_DIRNAME);
         } else {
-            throw new DirectoryNotFoundException("Path " . $path . " not found");
+            if ($extension == null) {
+                $name = pathinfo($validPath . "/" . $name, PATHINFO_FILENAME);
+                $extension = pathinfo($validPath . "/" . $name, PATHINFO_EXTENSION);
+
+            }
         }
+
+        $validPath = self::checkPath($validPath . "/" . $name . "." . $extension);
+
+        if (copy($validPath, $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+            return true;
+        }
+
+        return false;
 
     }
 
     /**
-     * @param string $path
-     * @param string|null $name
+     * @param string $name
      * @param string|null $extension
+     * @param string $path
      * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
      */
-    public function copyFileToAnotherDirectory(string $path,?string $name = null,?string $extension = null,?string $renameTo = null):bool
+    public function copyFileToAnotherDirectory(string $name, ?string $extension, string $path, ?string $renameTo = null):bool
     {
-        if (file_exists($path)) {
 
-            if (!is_dir($path)) {
-                $name = pathinfo($path, PATHINFO_FILENAME);
-                $extension = pathinfo($path, PATHINFO_EXTENSION);
-                $path = pathinfo($path, PATHINFO_DIRNAME);
-            } else {
-                if($extension == null) {
-                    $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
-                    $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
-                }
-            }
+        if($extension == null) {
+            $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
+            $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
+        }
 
-            if (copy($this->actualPath . "/" . $name . "." . $extension,
-                $path . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+        if($this->fileExists($name, $extension)) {
+
+            $validPath = self::checkPath($path);
+
+            if (copy($this->actualPath . "/" . $name . "." . $extension, $validPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
                 return true;
             }
 
             return false;
 
         } else {
-            throw new DirectoryNotFoundException("Path " . $path . " not found");
+            throw new FileNotFoundException("File " . $this->actualPath . "/" . $name . "." . $extension . " not found");
         }
 
     }
@@ -758,7 +785,7 @@ class FileCommander
      * @param string $destinationPath
      * @param int $permissions
      */
-    private function copyDirectoryToRecursive(string $targetPath,string $destinationPath,int $permissions = 775){
+    private function copyDirectoryToRecursive(string $targetPath, string $destinationPath, int $permissions = 775){
 
         $dir = dir($targetPath);
         while (false !== $entry = $dir->read()) {
@@ -776,7 +803,6 @@ class FileCommander
 
         // Clean up
         $dir->close();
-
     }
 
     /**
@@ -785,8 +811,8 @@ class FileCommander
      * @throws DirectoryNotFoundException
      */
     public function copyDirectoryTo(string $destPath, int $permissions = 775){
-        $this->checkPath($destPath);
-        $this->copyDirectoryToRecursive($this->getAbsolutePath(), $destPath, $permissions);
+        $validPath = self::checkPath($destPath);
+        $this->copyDirectoryToRecursive($this->getAbsolutePath(), $validPath, $permissions);
     }
 
 }

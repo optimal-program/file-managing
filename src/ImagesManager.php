@@ -28,8 +28,9 @@ class ImagesManager
      * @throws DirectoryNotFoundException
      */
     public function setSourceDirectory(string $dir){
-        $this->commander->setPath($dir);
-        $this->setOutputDirectory($dir);
+        $validPath = FileCommander::checkPath($dir);
+        $this->commander->setPath($validPath);
+        $this->setOutputDirectory($validPath);
     }
 
     /**
@@ -37,15 +38,15 @@ class ImagesManager
      * @throws DirectoryNotFoundException
      */
     public function setOutputDirectory(string $dir){
-        $this->commander->checkPath($dir);
-        $this->newDestination = $dir;
+        $validPath = FileCommander::checkPath($dir);
+        $this->newDestination = $validPath;
     }
 
     /**
      * @return string
      * @throws DirectoryNotFoundException
      */
-    public function getTargetDirectory():string {
+    public function getSourceDirectory():string {
         return $this->commander->getAbsolutePath();
     }
 
