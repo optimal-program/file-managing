@@ -5,6 +5,7 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\UploadFileException;
+use Optimal\FileManaging\resources\UploadedFilesResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\ImageCropSettings;
 use Optimal\FileManaging\Utils\ImageResolutionSettings;
@@ -477,8 +478,6 @@ class FileUploader {
                 }
             }
 
-            $originalImageResourceVariants = [];
-
             if($this->imageResolutionsSettings != null) {
 
                 if(!$this->cacheDirCommander){
@@ -506,15 +505,12 @@ class FileUploader {
                     $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
 
-                    array_push($originalImageResourceVariants, $imageManageResourceV->getOutputImageResource());
-
                     $this->cacheDirCommander->moveUp();
                 }
 
             }
 
             $thumbImageResource = null;
-            $thumbImageResourceVariants = [];
 
             if($this->imageThumbResolutionsSettings != null){
 
@@ -527,7 +523,9 @@ class FileUploader {
                     $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
+
                     // TODO image thumb crop
+
                     $imageManageResourceV->getSourceImageResource()->setNewName($newName."-thumb");
                     $imageManageResourceV->save();
 
@@ -535,6 +533,8 @@ class FileUploader {
                 } else {
                     $thumbImageResource = clone($originalImageResource);
                 }
+
+                $originalImageResource->setThumb($thumbImageResource);
 
                 $thumbImageResourceExt = $thumbImageResource->getNewExtension() != null ? $thumbImageResource->getNewExtension() : $thumbImageResource->getExtension();
 
@@ -554,8 +554,6 @@ class FileUploader {
                     $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
                     $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
                     $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
-
-                    array_push($thumbImageResourceVariants, $imageManageResourceV->getOutputImageResource());
 
                     $this->cacheDirCommander->moveUp();
                     $this->cacheDirCommander->moveUp();
@@ -578,16 +576,8 @@ class FileUploader {
 
             $this->targetDirCommander->moveUp();
 
-            array_push($this->uploadedFiles["images"], [
-                "main" => [
-                    "original" => $originalImageResource,
-                    "variants" => $originalImageResourceVariants
-                ],
-                "thumb" => [
-                    "original" => $thumbImageResource,
-                    "variants" => $thumbImageResourceVariants
-                ]
-            ]);
+
+            array_push($this->uploadedFiles["images"], $originalImageResource);
 
         } else {
             $this->tmpDirCommander->setPath($tmpFilePath);
@@ -599,9 +589,12 @@ class FileUploader {
         return true;
     }
 
+    /**
+     * @return UploadedFilesResource
+     */
     public function getUploadedFiles()
     {
-        return $this->uploadedFiles;
+        return new UploadedFilesResource($this->uploadedFiles["files"], $this->uploadedFiles["images"]);
     }
 
     public function getSuccessMessages()
