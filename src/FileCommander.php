@@ -91,7 +91,7 @@ class FileCommander
             return $this->actualPath;
         }
 
-        return $this->actualPath."/".SystemPaths::getScriptPath();
+        return SystemPaths::getScriptPath()."/".$this->actualPath;
     }
 
     /**
