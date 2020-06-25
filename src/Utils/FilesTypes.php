@@ -13,10 +13,11 @@ final class FilesTypes
 
     // IMAGES
     const IMAGES_JPG = ["jpg","jpeg","jfif"];
-    const IMAGES_png = ["png"];
+    const IMAGES_WEBP = ["png"];
+    const IMAGES_PNG = ["png"];
     const IMAGES_gif = ["gif"];
 
-    const IMAGES = ["jfif","jpg","jpeg","png","gif"];
+    const IMAGES = ["jfif","webp","jpg","jpeg","png","gif"];
 
     // DOCUMENTS
     const DOCUMENTS_MS_WORD = ["doc","docx"];
