@@ -26,8 +26,12 @@ class ImageResolutionSettings
      * @param string $resizeType
      * @param string $extension
      */
-    public function __construct($width, $height = 0, $extension = self::EXTENSION_DEFAULT, $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
+    public function __construct($width, $height = 0, $extension = null, $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
     {
+        if($extension == null){
+            $extension = self::EXTENSION_DEFAULT;
+        }
+
         $this->width = $width;
         $this->height = $height;
         $this->resizeType = $resizeType;
