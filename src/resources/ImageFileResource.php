@@ -39,6 +39,9 @@ class ImageFileResource extends AbstractImageFileResource
      */
     public function setThumb(?AbstractFileResource $thumb = null):void
     {
+        if($thumb != null && !$thumb instanceof ImageFileResourceThumb){
+            throw new \Exception('Wrong class type, expected ImageFileResourceThumb');
+        }
         $this->thumb = $thumb;
     }
 

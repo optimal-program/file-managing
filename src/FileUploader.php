@@ -5,6 +5,7 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\UploadFileException;
+use Optimal\FileManaging\resources\ImageFileResourceThumb;
 use Optimal\FileManaging\resources\UploadedFilesResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\ImageCropSettings;
@@ -531,7 +532,7 @@ class FileUploader {
 
                     $thumbImageResource = $imageManageResourceV->getOutputImageResource();
                 } else {
-                    $thumbImageResource = clone($originalImageResource);
+                    $thumbImageResource = new ImageFileResourceThumb($originalImageResource->getFilePath());
                 }
 
                 $originalImageResource->setThumb($thumbImageResource);
