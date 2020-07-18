@@ -309,6 +309,16 @@ class FileUploader {
     /**
      * @param string $inputName
      * @param int $index
+     * @return array
+     */
+    public function getFileToUploadData(string $inputName, int $index):array
+    {
+        return $this->_FILES[$inputName][$index];
+    }
+
+    /**
+     * @param string $inputName
+     * @param int $index
      * @param string|null $newFileName
      * @param bool $overwrite
      * @throws DirectoryException
@@ -321,7 +331,7 @@ class FileUploader {
      * @throws UploadFileException
      * @throws \ImagickException
      */
-    public function uploadFile(string $inputName,int $index,?string $newFileName = null,bool $overwrite = true)
+    public function uploadFile(string $inputName, int $index, ?string $newFileName = null, bool $overwrite = true)
     {
         if(!$this->targetDirCommander || !$this->tmpDirCommander){
             throw new DirectoryException("Temporary or target directory is not defined");
