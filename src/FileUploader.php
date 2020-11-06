@@ -69,7 +69,7 @@ class FileUploader {
     /**
      * @return FileUploader|null
      */
-    public static function init(){
+    public static function getInstance(){
         if(self::$instance == null){
             self::$instance = new FileUploader();
         }
@@ -138,7 +138,7 @@ class FileUploader {
     /**
      * @param bool $enable
      */
-    public function enableBackup($enable = true){
+    public function enableBackup($enable = false){
         $this->backup = $enable;
     }
 
