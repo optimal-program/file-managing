@@ -10,12 +10,8 @@ class IniInfo
     private static $maxFileUploads;
 
     public static function init(){
-
-        $maxUploadFileSize = ini_get('upload_max_filesize');
-        $maxPostSize = ini_get('post_max_size');
-
-        self::$PostMaxSize = self::toBytes($maxPostSize);
-        self::$UploadMaxFileSize = self::toBytes($maxUploadFileSize);
+        self::$PostMaxSize = ini_get('post_max_size');
+        self::$UploadMaxFileSize = ini_get('upload_max_filesize');
         self::$maxFileUploads = ini_get('max_file_uploads');
     }
 
@@ -65,17 +61,19 @@ class IniInfo
     }
 
     /**
-     * @return float
+     * @param bool $toBytes
+     * @return int
      */
-    public static function getPostMaxSize():int {
-        return self::$PostMaxSize;
+    public static function getPostMaxSize(bool $toBytes = true):int {
+        return $toBytes ?  self::toBytes(self::$PostMaxSize) : self::$PostMaxSize;
     }
 
     /**
-     * @return float
+     * @param bool $toBytes
+     * @return int
      */
-    public static function getMaxFileSize():int {
-        return self::$UploadMaxFileSize;
+    public static function getMaxFileSize(bool $toBytes = true):int {
+        return $toBytes ? self::toBytes(self::$UploadMaxFileSize) : self::$UploadMaxFileSize;
     }
 
     /**
