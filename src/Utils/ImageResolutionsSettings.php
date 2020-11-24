@@ -9,26 +9,36 @@ class ImageResolutionsSettings
 
     private $resolutions = [];
 
-    /** @var string|null */
-    private $defaultExtension = null;
+    /** @var array */
+    private $defaultExtensions = [];
 
-    public function setDefaultExtension(string $extension){
-        if(in_array($extension, FilesTypes::IMAGES)) {
-            $this->defaultExtension = $extension;
-        }
+    /**
+     * @param array $extensions
+     */
+    public function setDefaultExtensions(array $extensions){
+        $this->defaultExtensions = $extensions;
     }
 
+    /**
+     * @param ImageResolutionSettings $settings
+     */
     public function addResolutionSettingsByObject(ImageResolutionSettings $settings)
     {
         array_push($this->resolutions, $settings);
     }
 
-    public function addResolutionSettings($width, $height = 0, $extension = null, $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
+    /**
+     * @param $width
+     * @param null $height
+     * @param array $extensions
+     * @param string $resizeType
+     */
+    public function addResolutionSettings($width, $height = null, $extensions = [], $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
     {
-        if($extension == null && $this->defaultExtension != null){
-            $extension = $this->defaultExtension;
+        if(empty($extensions) && !empty($this->defaultExtensions)){
+            $extensions = $this->defaultExtensions;
         }
-        array_push($this->resolutions, new ImageResolutionSettings($width, $height, $extension, $resizeType));
+        array_push($this->resolutions, new ImageResolutionSettings($width, $height, $extensions, $resizeType));
     }
 
     public function getResolutionsSettings()

@@ -11,31 +11,34 @@ class ImageResolutionSettings
     const EXTENSION_DEFAULT = "default";
 
     /** @var int|null */
-    private $width = null;
+    private $width;
+
     /** @var int|null */
-    private $height = null;
-    /** @var string|null */
-    private $resizeType = null;
-    /** @var string|null */
-    private $extension = null;
+    private $height;
+
+    /** @var string */
+    private $resizeType;
+
+    /** @var array */
+    private $extensions;
 
     /**
      * ImageResolutionSettings constructor.
      * @param $width
-     * @param $height
+     * @param int $height
+     * @param array $extensions
      * @param string $resizeType
-     * @param string $extension
      */
-    public function __construct($width, $height = 0, $extension = null, $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
+    public function __construct($width, $height = null, $extensions = [], $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
     {
-        if($extension == null){
-            $extension = self::EXTENSION_DEFAULT;
+        if(empty($extensions)){
+            $extensions = [self::EXTENSION_DEFAULT];
         }
 
         $this->width = $width;
         $this->height = $height;
         $this->resizeType = $resizeType;
-        $this->extension = $extension;
+        $this->extensions = $extensions;
     }
 
     /**
@@ -71,35 +74,35 @@ class ImageResolutionSettings
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function getResizeType(): ?string
+    public function getResizeType(): string
     {
         return $this->resizeType;
     }
 
     /**
-     * @param string|null $resizeType
+     * @param string $resizeType
      */
-    public function setResizeType(?string $resizeType): void
+    public function setResizeType(string $resizeType): void
     {
         $this->resizeType = $resizeType;
     }
 
     /**
-     * @return string|null
+     * @return array
      */
-    public function getExtension(): ?string
+    public function getExtensions(): array
     {
-        return $this->extension;
+        return $this->extensions;
     }
 
     /**
-     * @param string|null $extension
+     * @param array $extensions
      */
-    public function setExtension(?string $extension): void
+    public function setExtensions(array $extensions): void
     {
-        $this->extension = $extension;
+        $this->extensions = $extensions;
     }
 
 }

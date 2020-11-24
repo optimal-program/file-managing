@@ -27,8 +27,6 @@ class FileUploader {
     private $targetDirCommander;
     /** @var FileCommander|null */
     private $tmpDirCommander;
-    /** @var FileCommander|null */
-    private $cacheDirCommander;
 
     /** @var ImagesManager */
     private $imagesManager;
@@ -43,13 +41,9 @@ class FileUploader {
 
     /** @var ImageCropSettings|null  */
     private $imageCropSettings = null;
-    /** @var ImageResolutionsSettings|null */
-    private $imageResolutionsSettings = null;
 
     /** @var ImageCropSettings|null  */
     private $imageThumbCropSettings = null;
-    /** @var ImageResolutionsSettings|null */
-    private $imageThumbResolutionsSettings = null;
 
     /** @var UploadedFilesLimits */
     private $uploadLimits;
@@ -85,7 +79,6 @@ class FileUploader {
 
         $this->targetDirCommander = null;
         $this->tmpDirCommander = null;
-        $this->cacheDirCommander = null;
 
         $this->imagesManager = new ImagesManager();
 
@@ -188,38 +181,17 @@ class FileUploader {
         $this->targetDirCommander->setPath($directory);
     }
 
-    /**
-     * @param string $directory
-     * @throws Exception\DirectoryNotFoundException
-     */
-    public function setImagesVariantsCacheDirectory(string $directory){
-        $this->cacheDirCommander = new FileCommander();
-        $this->cacheDirCommander->setPath($directory);
-    }
-
-    /**
-     * @param ImageResolutionsSettings $settings
-     */
-    public function setImageResolutionsSettings(ImageResolutionsSettings $settings){
-        $this->imageResolutionsSettings = $settings;
-    }
-
-    /* TODO - enable crop images
-    public function setImageCropSettings(ImageCropSettings $settings){
-        $this->imageCropSettings = $settings;
+    /* todo - enable crop images
+    public function setimagecropsettings(imagecropsettings $settings){
+        $this->imagecropsettings = $settings;
     }
     */
 
-    /**
-     * @param ImageResolutionsSettings $resizeSettings
-     */
-    public function setThumbResolutionsSettings(ImageResolutionsSettings $resizeSettings){
-        $this->imageThumbResolutionsSettings = $resizeSettings;
-    }
 
-    /** TODO - enable crop images
-    public function setImageThumbCropSettings(ImageCropSettings $settings){
-        $this->imageThumbCropSettings = $settings;
+
+    /** todo - enable crop images
+    public function setimagethumbcropsettings(imagecropsettings $settings){
+        $this->imagethumbcropsettings = $settings;
     }
     */
 
@@ -481,99 +453,20 @@ class FileUploader {
             $originalImageResource = $imageManageResource->getOutputImageResource();
             $originalImageResourceExt = $originalImageResource->getNewExtension() != null ? $originalImageResource->getNewExtension() : $originalImageResource->getExtension();
 
-            if($this->cacheDirCommander) {
-                $cacheDirPath = $this->cacheDirCommander->getRelativePath();
-                $pathParts = explode("/", $this->targetDirCommander->getRelativePath());
-                foreach ($pathParts as $pathPart) {
-                    $this->cacheDirCommander->addDirectory($pathPart, true);
-                }
-            }
-
-            if($this->imageResolutionsSettings != null) {
-
-                if(!$this->cacheDirCommander){
-                    throw new DirectoryException("Images variants cache directory is not defined");
-                }
-
-                /** @var ImageResolutionSettings $resolutionSettings */
-                foreach ($this->imageResolutionsSettings->getResolutionsSettings() as $resolutionSettings) {
-
-                    if($resolutionSettings->getWidth() > $this->maxImageWidth || $resolutionSettings->getHeight() > $this->maxImageHeight){
-                        continue;
-                    }
-
-                    $this->cacheDirCommander->addDirectory($newName, true);
-                    $this->cacheDirCommander->addDirectory('image_variants', true);
-                    $this->cacheDirCommander->clearDir();
-
-                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
-
-                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
-                    $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
-
-                    $variantName = $newName . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
-                    $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
-                    $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
-
-                    $this->cacheDirCommander->moveUp();
-                }
-
-            }
-
             $thumbImageResource = null;
+            if($this->imageThumbCropSettings != null) {
 
-            if($this->imageThumbResolutionsSettings != null){
+                $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
+                $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
-                if(!$this->cacheDirCommander){
-                    throw new DirectoryException("Images variants cache directory is not defined");
-                }
+                $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
 
-                if($this->imageThumbCropSettings != null) {
-                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
+                // TODO image thumb crop
 
-                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
+                $imageManageResourceV->getSourceImageResource()->setNewName($newName."-thumb");
+                $imageManageResourceV->save();
 
-                    // TODO image thumb crop
-
-                    $imageManageResourceV->getSourceImageResource()->setNewName($newName."-thumb");
-                    $imageManageResourceV->save();
-
-                    $thumbImageResource = $imageManageResourceV->getOutputImageResource();
-                } else {
-                    $thumbImageResource = new ImageFileResourceThumb($originalImageResource->getFilePath());
-                }
-
-                $originalImageResource->setThumb($thumbImageResource);
-
-                $thumbImageResourceExt = $thumbImageResource->getNewExtension() != null ? $thumbImageResource->getNewExtension() : $thumbImageResource->getExtension();
-
-                $this->cacheDirCommander->addDirectory('thumbs', true);
-
-                foreach ($this->imageThumbResolutionsSettings->getResolutionsSettings() as $resolutionSettings){
-
-                    $this->cacheDirCommander->addDirectory($thumbImageResource->getName(), true);
-                    $this->cacheDirCommander->clearDir();
-
-                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->cacheDirCommander->getRelativePath());
-
-                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($thumbImageResource->getName(), $thumbImageResourceExt, $this->imagesResourceType);
-                    $imageManageResourceV->resize($resolutionSettings->getWidth(), $resolutionSettings->getHeight(), $resolutionSettings->getResizeType());
-
-                    $variantName = $newName .'-thumb' . (($resolutionSettings->getWidth() > 0) ? '-w' . $resolutionSettings->getWidth() : '') . (($resolutionSettings->getHeight() > 0) ? '-h' . $resolutionSettings->getHeight() : '');
-                    $imageManageResourceV->getSourceImageResource()->setNewName($variantName);
-                    $imageManageResourceV->save(null, $resolutionSettings->getExtension() == "default" ? null : $resolutionSettings->getExtension());
-
-                    $this->cacheDirCommander->moveUp();
-                    $this->cacheDirCommander->moveUp();
-                }
-
-            }
-
-            if($this->cacheDirCommander) {
-                $this->cacheDirCommander->setPath($cacheDirPath);
+                $thumbImageResource = $imageManageResourceV->getOutputImageResource();
             }
 
             $currDir = $this->targetDirCommander->getRelativePath();
@@ -588,7 +481,7 @@ class FileUploader {
             $this->targetDirCommander->moveUp();
 
 
-            array_push($this->uploadedFiles["images"], $originalImageResource);
+            array_push($this->uploadedFiles["images"], ['original' => $originalImageResource, 'thumb' => $thumbImageResource]);
 
         } else {
             $this->tmpDirCommander->setPath($tmpFilePath);
