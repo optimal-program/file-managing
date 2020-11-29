@@ -430,8 +430,6 @@ class FileUploader {
             return false;
         }
 
-        $tmpFilePath = $this->tmpDirCommander->getRelativePath();
-
         if ($this->targetDirCommander->isImage($file["only_extension"])) {
 
             $this->imagesManager->setSourceDirectory($tmpFilePath);
@@ -475,7 +473,6 @@ class FileUploader {
                 $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $newName, $file["only_extension"]);
             }
 
-            $this->tmpDirCommander->setPath($tmpFilePath);
             $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
 
             $this->targetDirCommander->moveUp();
@@ -484,7 +481,6 @@ class FileUploader {
             array_push($this->uploadedFiles["images"], ['original' => $originalImageResource, 'thumb' => $thumbImageResource]);
 
         } else {
-            $this->tmpDirCommander->setPath($tmpFilePath);
             $this->tmpDirCommander->copyFileToAnotherDirectory($this->targetDirCommander->getRelativePath(), $newName, $file["only_extension"]);
             $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
             array_push($this->uploadedFiles["files"], $this->targetDirCommander->getFile($newName, $file["only_extension"]));

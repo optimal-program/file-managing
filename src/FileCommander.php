@@ -733,13 +733,14 @@ class FileCommander
      * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
+     * @throws FileNotFoundException
      */
     public function copyFileToAnotherDirectory(string $name, ?string $extension, string $path, ?string $renameTo = null):bool
     {
 
         if($extension == null) {
             $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
-            $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
+            $extension = pathinfo($this->actualPath."/".$extension, PATHINFO_EXTENSION);
         }
 
         if($this->fileExists($name, $extension)) {
