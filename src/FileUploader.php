@@ -481,7 +481,7 @@ class FileUploader {
             array_push($this->uploadedFiles["images"], ['original' => $originalImageResource, 'thumb' => $thumbImageResource]);
 
         } else {
-            $this->tmpDirCommander->copyFileToAnotherDirectory($this->targetDirCommander->getRelativePath(), $newName, $file["only_extension"]);
+            $this->tmpDirCommander->copyFileToAnotherDirectory($newName, $file["only_extension"], $this->targetDirCommander->getRelativePath());
             $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
             array_push($this->uploadedFiles["files"], $this->targetDirCommander->getFile($newName, $file["only_extension"]));
         }

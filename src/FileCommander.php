@@ -740,7 +740,7 @@ class FileCommander
 
         if($extension == null) {
             $name = pathinfo($this->actualPath."/".$name, PATHINFO_FILENAME);
-            $extension = pathinfo($this->actualPath."/".$extension, PATHINFO_EXTENSION);
+            $extension = pathinfo($this->actualPath."/".$name, PATHINFO_EXTENSION);
         }
 
         if($this->fileExists($name, $extension)) {
