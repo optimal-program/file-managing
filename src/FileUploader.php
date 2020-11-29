@@ -432,7 +432,7 @@ class FileUploader {
 
         if ($this->targetDirCommander->isImage($file["only_extension"])) {
 
-            $this->imagesManager->setSourceDirectory($tmpFilePath);
+            $this->imagesManager->setSourceDirectory($this->tmpDirCommander->getRelativePath());
             $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
             $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
