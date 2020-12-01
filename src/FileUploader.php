@@ -431,6 +431,9 @@ class FileUploader {
                     $newName = $result['newName'];
                 }
             }
+            if(is_bool($result) && !$result){
+                return false;
+            }
         }
 
         $success = @move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getRelativePath() . "/" . $newName . "." . $file["only_extension"]);
