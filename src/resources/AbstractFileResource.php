@@ -11,23 +11,26 @@ use Optimal\FileManaging\Utils\SystemPaths;
 abstract class AbstractFileResource
 {
 
+    /** @var string */
     protected $name;
+
+    /** @var string|null */
     protected $newName = null;
 
+    /** @var string */
     protected $extension;
+
+    /** @var string|null */
     protected $newExtension = null;
 
+    /** @var integer */
     protected $size;
 
+    /** @var string */
     protected $path;
+
+    /** @var string|null */
     protected $newPath = null;
-
-    protected $relativePath;
-
-    private $dbId = null;
-    private $customName = "";
-    private $title = "";
-    private $description = "";
 
     /**
      * AbstractFileResource constructor.
@@ -60,70 +63,80 @@ abstract class AbstractFileResource
         $this->setFileInfo();
     }
 
-    protected function setFileInfo(){
+    protected function setFileInfo()
+    {
         $this->size = filesize($this->path."/".$this->name.".".$this->extension);
     }
 
     /**
      * @return string
      */
-    public function getExtension():string {
+    public function getExtension():string
+    {
         return $this->extension;
     }
 
     /**
      * @return string
      */
-    public function getName():string {
+    public function getName():string
+    {
         return $this->name;
     }
 
     /**
      * @return string
      */
-    public function getNameExtension():string {
+    public function getNameExtension():string
+    {
         return $this->name.".".$this->extension;
     }
 
     /**
      * @return string
      */
-    public function getNewNameExtension():string {
+    public function getNewNameExtension():string
+    {
         return ($this->newName != null ? $this->newName : $this->name).".".($this->newExtension != null ? $this->newExtension : $this->extension);
     }
 
     /**
      * @return string
      */
-    public function getFileDirectoryPath():string {
+    public function getFileDirectoryPath():string
+    {
         return $this->path;
     }
 
     /**
      * @return string
      */
-    public function getFilePath():string {
+    public function getFilePath():string
+    {
         return $this->path."/".$this->getNameExtension();
     }
 
     /**
      * @return string
      */
-    public function getFileRelativePath():string {
+    public function getFileRelativePath():string
+    {
         return ltrim(str_replace(SystemPaths::getScriptPath(), "", $this->path), "/")."/". $this->name.".".$this->extension;
     }
 
     /**
      * @return string
      */
-    public function getUrlToFile():string {
+    public function getUrlToFile():string
+    {
         return SystemPaths::getBaseUrl() . "/" . $this->path ."/". $this->name.".".$this->extension;
     }
 
     /**
      * @return int
      */
-    public function getFileSize():int {
+    public function getFileSize():int
+    {
         return $this->size;
     }
 
@@ -131,7 +144,8 @@ abstract class AbstractFileResource
      * @param string $name
      * @return $this
      */
-    public function setNewName(string $name){
+    public function setNewName(string $name)
+    {
         $this->newName = $name;
         return $this;
     }
@@ -148,7 +162,8 @@ abstract class AbstractFileResource
      * @param string $extension
      * @return $this
      */
-    public function setNewExtension(string $extension){
+    public function setNewExtension(string $extension)
+    {
         $this->newExtension = $extension;
         return $this;
     }
@@ -156,7 +171,8 @@ abstract class AbstractFileResource
     /**
      * @return string|null
      */
-    public function getNewExtension():?string {
+    public function getNewExtension():?string
+    {
         return $this->newExtension;
     }
 
@@ -164,7 +180,8 @@ abstract class AbstractFileResource
      * @param string $path
      * @return $this
      */
-    public function setNewPath(string $path){
+    public function setNewPath(string $path)
+    {
         $this->newPath = $path;
         return $this;
     }
@@ -172,15 +189,16 @@ abstract class AbstractFileResource
     /**
      * @return string|null
      */
-    public function getFileNewDirectoryPath():?string {
+    public function getFileNewDirectoryPath():?string
+    {
         return $this->newPath;
     }
 
     /**
      * @return string|null
      */
-    public function getFileNewPath():?string {
-
+    public function getFileNewPath():?string
+    {
         if($this->newPath == null){
             return null;
         }
@@ -190,7 +208,8 @@ abstract class AbstractFileResource
         return $this->newPath."/".$name;
     }
 
-    public function applyNewSettings(){
+    public function applyNewSettings()
+    {
         if($this->newName != null) {
             $this->name = $this->newName;
         }
@@ -211,70 +230,6 @@ abstract class AbstractFileResource
     }
 
     /**
-     * @return mixed
-     */
-    public function getDbId()
-    {
-        return $this->dbId;
-    }
-
-    /**
-     * @param mixed $dbId
-     */
-    public function setDbId($dbId): void
-    {
-        $this->dbId = $dbId;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCustomName()
-    {
-        return $this->customName;
-    }
-
-    /**
-     * @param mixed $customName
-     */
-    public function setCustomName($customName): void
-    {
-        $this->customName = $customName;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    /**
-     * @param mixed $title
-     */
-    public function setTitle($title): void
-    {
-        $this->title = $title;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    /**
-     * @param mixed $description
-     */
-    public function setDescription($description): void
-    {
-        $this->description = $description;
-    }
-
-    /**
      * @param string $string
      * @return string
      */
@@ -285,9 +240,6 @@ abstract class AbstractFileResource
         $string = str_replace("{realExtension}", $this->getExtension(), $string);
         $string = str_replace("{realNameEx}", $this->getNameExtension(), $string);
         $string = str_replace("{realFileSize}", $this->getFileSize(), $string);
-        $string = str_replace("{name}", $this->getDbId(), $string);
-        $string = str_replace("{nameEx}", $this->getCustomName(), $string);
-        $string = str_replace("{description}", $this->getDescription(), $string);
 
         return $string;
     }

@@ -5,13 +5,10 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\UploadFileException;
-use Optimal\FileManaging\resources\ImageFileResourceThumb;
 use Optimal\FileManaging\resources\UploadedFilesResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\ImageCropSettings;
-use Optimal\FileManaging\Utils\ImageResolutionSettings;
-use Optimal\FileManaging\Utils\ImageResolutionsSettings;
-use Optimal\FileManaging\Utils\UploadedFilesLimits;
+use Optimal\FileManaging\Utils\FileUploaderUploadLimits;
 
 class FileUploader {
 
@@ -25,11 +22,13 @@ class FileUploader {
 
     /** @var FileCommander|null */
     private $targetDirCommander;
+
     /** @var FileCommander|null */
     private $tmpDirCommander;
 
     /** @var ImagesManager */
     private $imagesManager;
+
     /** @var string */
     private $imagesResourceType;
 
@@ -45,15 +44,18 @@ class FileUploader {
     /** @var ImageCropSettings|null  */
     private $imageThumbCropSettings = null;
 
-    /** @var UploadedFilesLimits */
+    /** @var FileUploaderUploadLimits */
     private $uploadLimits;
+
     /** @var bool  */
     private $autoRotateImages = true;
+
     /** @var bool  */
     private $backup = false;
 
     /** @var array  */
     private $successMessages;
+
     /** @var array  */
     private $errorMessages;
 
@@ -75,7 +77,7 @@ class FileUploader {
      */
     private function __construct(){
 
-        $this->uploadLimits = new UploadedFilesLimits();
+        $this->uploadLimits = new FileUploaderUploadLimits();
 
         $this->targetDirCommander = null;
         $this->tmpDirCommander = null;
@@ -157,9 +159,9 @@ class FileUploader {
     }
 
     /**
-     * @param UploadedFilesLimits $limits
+     * @param FileUploaderUploadLimits $limits
      */
-    public function setUploadLimits(UploadedFilesLimits $limits){
+    public function setUploadLimits(FileUploaderUploadLimits $limits){
         $this->uploadLimits = $limits;
     }
 
@@ -445,57 +447,74 @@ class FileUploader {
             return false;
         }
 
-        if ($this->targetDirCommander->isImage($file["only_extension"])) {
+        if (FileCommander::isImage($file["only_extension"])) {
 
-            $this->imagesManager->setSourceDirectory($this->tmpDirCommander->getRelativePath());
-            $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
+            if(FileCommander::isBitmapImage($file["only_extension"])) {
 
-            $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
-
-            if ($this->autoRotateImages) {
-                $imageManageResource->autoRotate();
-            }
-
-            $imageManageResource->resize($this->maxImageWidth, $this->maxImageHeight);
-
-            if($this->imageCropSettings != null){
-                // TODO image crop
-            }
-
-            $imageManageResource->save();
-            $originalImageResource = $imageManageResource->getOutputImageResource();
-            $originalImageResourceExt = $originalImageResource->getNewExtension() != null ? $originalImageResource->getNewExtension() : $originalImageResource->getExtension();
-
-            $thumbImageResource = null;
-            if($this->imageThumbCropSettings != null) {
-
-                $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
+                $this->imagesManager->setSourceDirectory($this->tmpDirCommander->getRelativePath());
                 $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
-                $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
+                $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
 
-                // TODO image thumb crop
+                if ($this->autoRotateImages) {
+                    $imageManageResource->autoRotate();
+                }
 
-                $imageManageResourceV->getSourceImageResource()->setNewName($newName."-thumb");
-                $imageManageResourceV->save();
+                $imageManageResource->resize($this->maxImageWidth, $this->maxImageHeight);
 
-                $thumbImageResource = $imageManageResourceV->getOutputImageResource();
-            }
+                if ($this->imageCropSettings != null) {
+                    // TODO image crop
+                }
 
-            $currDir = $this->targetDirCommander->getRelativePath();
-            if($this->backup) {
-                $this->targetDirCommander->addDirectory("backup", true);
-                $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $newName, $file["only_extension"]);
-            }
+                $imageManageResource->save();
+                $originalImageResource = $imageManageResource->getOutputImageResource();
+                $originalImageResourceExt = $originalImageResource->getNewExtension() != null ? $originalImageResource->getNewExtension() : $originalImageResource->getExtension();
 
-            $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
+                $thumbImageResource = null;
+                if ($this->imageThumbCropSettings != null) {
 
-            $this->targetDirCommander->moveUp();
+                    $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
+                    $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
-            array_push($this->uploadedFiles["images"], ['original' => $originalImageResource, 'thumb' => $thumbImageResource]);
+                    $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
 
-            if(isset($afterUploadCallback)){
-                $afterUploadCallback($originalImageResource, $thumbImageResource);
+                    // TODO image thumb crop
+
+                    $imageManageResourceV->getSourceImageResource()->setNewName($newName . "-thumb");
+                    $imageManageResourceV->save();
+
+                    $thumbImageResource = $imageManageResourceV->getOutputImageResource();
+                }
+
+                $currDir = $this->targetDirCommander->getRelativePath();
+                if ($this->backup) {
+                    $this->targetDirCommander->addDirectory("backup", true);
+                    $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $newName, $file["only_extension"]);
+                }
+
+                $this->tmpDirCommander->removeFile($newName . "." . $file["only_extension"]);
+
+                $this->targetDirCommander->moveUp();
+
+                array_push($this->uploadedFiles["images"], ['original' => $originalImageResource, 'thumb' => $thumbImageResource]);
+
+                if (isset($afterUploadCallback)) {
+                    $afterUploadCallback($originalImageResource, $thumbImageResource);
+                }
+
+            } else {
+
+                $this->tmpDirCommander->copyFileToAnotherDirectory($newName, $file["only_extension"], $this->targetDirCommander->getRelativePath());
+                $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
+
+                $vectorImageResource = $this->targetDirCommander->getFile($newName, $file["only_extension"]);
+
+                array_push($this->uploadedFiles["images"], ['original' => $vectorImageResource]);
+
+                if (isset($afterUploadCallback)) {
+                    $afterUploadCallback($vectorImageResource);
+                }
+
             }
 
         } else {

@@ -2,7 +2,7 @@
 
 namespace Optimal\FileManaging\resources;
 
-class AbstractImageFileResource extends AbstractFileResource
+class VectorImageFileResource extends AbstractImageFileResource
 {
 
     function __construct(string $path, ?string $name = null, ?string $extension = null)

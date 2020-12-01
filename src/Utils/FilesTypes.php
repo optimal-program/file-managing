@@ -15,9 +15,12 @@ final class FilesTypes
     const IMAGES_JPG = ["jpg","jpeg","jfif"];
     const IMAGES_WEBP = ["webp"];
     const IMAGES_PNG = ["png"];
-    const IMAGES_gif = ["gif"];
+    const IMAGES_GIF = ["gif"];
+    const IMAGES_SVG = ["gif"];
 
-    const IMAGES = ["jfif","webp","jpg","jpeg","png","gif"];
+    const BITMAP_IMAGES = ["jfif","webp","jpg","jpeg","png","gif"];
+    CONST VECTOR_IMAGES = ["svg"];
+    const IMAGES = ["jfif","webp","jpg","jpeg","png","gif","svg"];
 
     // DOCUMENTS
     const DOCUMENTS_MS_WORD = ["doc","docx"];
@@ -51,16 +54,13 @@ final class FilesTypes
 
     const IMP_EXP = ["csv","xml","json"];
 
-    // WEB
-    const WEB = ["css","js","html"];
-
     // ALL
-    const ALL_SUPPORTED_FILES = ["jpg", "jfif", "jpeg","png","gif","doc","docx","xls","xlsx","ppt","pptx","odt","ott","ods","sdc","odp","sdd","pdf","zip","7z","rar","csv","xml","json","css","js","html"];
+    const ALL_SUPPORTED_FILES = ["jpg", "jfif", "webp", "jpeg","png","gif","svg","doc","docx","xls","xlsx","ppt","pptx","odt","ott","ods","sdc","odp","sdd","pdf","zip","7z","rar","csv","xml","json","css","js","html"];
 
     // FILES
     const NO_IMAGES = ["doc","docx","xls","xlsx","ppt","pptx","odt","ott","ods","sdc","odp","sdd","pdf","zip","7z","rar","csv","xml","json","css","js","html"];
 
     // DISALLOWED
-    const DISALLOWED = ["bin","cgi","exe","pl","py","sh","bat","html","xhtml","css","ico","inc","hphp","module"];
+    const DISALLOWED = ["bin","cgi","exe","pl","py","sh","bat","html","xhtml","ico","inc","hphp","module", "dll", "js", "css"];
 
 }

@@ -17,10 +17,10 @@ abstract class ImageManageResource
 
     /**
      * ImageManageResource constructor.
-     * @param ImageFileResource $image
+     * @param BitmapImageFileResource $image
      * @param FileCommander $commander
      */
-    function __construct(ImageFileResource $image, FileCommander $commander){
+    function __construct(BitmapImageFileResource $image, FileCommander $commander){
         $this->image = $image;
         $this->commander = $commander;
     }
@@ -54,18 +54,18 @@ abstract class ImageManageResource
     abstract protected function reSampleImg(int $width,int $height,int $x = -1,int $y = -1);
 
     /**
-     * @return ImageFileResource
+     * @return BitmapImageFileResource
      */
-    public function getSourceImageResource():ImageFileResource{
+    public function getSourceImageResource():BitmapImageFileResource{
         return $this->image;
     }
 
     /**
-     * @return ImageFileResource
+     * @return BitmapImageFileResource
      * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
      * @throws \Optimal\FileManaging\Exception\FileNotFoundException
      */
-    public function getOutputImageResource():ImageFileResource{
+    public function getOutputImageResource():BitmapImageFileResource{
         $targetSource = clone($this->image);
         $targetSource->applyNewSettings();
         return $targetSource;

@@ -10,11 +10,11 @@ final class ImageManageGDResource extends ImageManageResource
 
     /**
      * GDResource constructor.
-     * @param ImageFileResource $image
+     * @param BitmapImageFileResource $image
      * @param FileCommander $commander
      * @throws GDException
      */
-    function __construct(ImageFileResource $image, FileCommander $commander){
+    function __construct(BitmapImageFileResource $image, FileCommander $commander){
 
         parent::__construct($image, $commander);
 

@@ -10,11 +10,11 @@ use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
-use Optimal\FileManaging\resources\ImageFileResourceBackup;
-use Optimal\FileManaging\resources\ImageFileResource;
+use Optimal\FileManaging\resources\AbstractImageFileResource;
+use Optimal\FileManaging\resources\BitmapImageFileResource;
+use Optimal\FileManaging\resources\VectorImageFileResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\SystemPaths;
-use Optimal\FileManaging\Utils\UploadedFilesLimits;
 use Optimal\FileManaging\resources\FileResource;
 
 class FileCommander
@@ -61,6 +61,24 @@ class FileCommander
         }
 
         return $validPath;
+    }
+
+    /**
+     * @param string $extension
+     * @return bool
+     */
+    public static function isImage(string $extension):bool
+    {
+        return in_array(strtolower($extension), FilesTypes::IMAGES);
+    }
+
+    /**
+     * @param string $extension
+     * @return bool
+     */
+    public static function isBitmapImage(string $extension):bool
+    {
+        return in_array(strtolower($extension), FilesTypes::BITMAP_IMAGES);
     }
 
     /**
@@ -379,16 +397,6 @@ class FileCommander
     }
 
     /**
-     * @param string $extension
-     * @return bool
-     */
-    public function isImage(string $extension):bool
-    {
-        $extension = strtolower($extension);
-        return in_array($extension, FilesTypes::IMAGES);
-    }
-
-    /**
      * @param string $pattern
      * @param bool $sort
      * @return FileResource[]
@@ -505,11 +513,10 @@ class FileCommander
      * @param string|null $extension
      * @param bool $addBackupImage
      * @param bool $addThumb
-     * @return ImageFileResource
+     * @return AbstractImageFileResource
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
-    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumb = true):ImageFileResource
+    public function getImage(string $name,?string $extension = null,bool $addBackupImage = true, bool $addThumb = true):AbstractImageFileResource
     {
 
         if($extension == null){
@@ -519,25 +526,10 @@ class FileCommander
 
         $actualPath = (string) $this->actualPath;
 
-        $imageResource = new ImageFileResource($actualPath, $name, $extension);
-
-        if($addBackupImage && $this->directoryExists("backup")){
-            $this->moveToDirectory("backup");
-            $backupImage = $this->getImage($imageResource->getName(), $imageResource->getExtension(), false, false);
-            if($backupImage != null) {
-                $imageResource->setBackupResource($backupImage);
-            }
-            $this->moveUp();
-        }
-
-        if($this->fileExists($imageResource->getName()."_thumb", $imageResource->getExtension())){
-            $imageThumb = $this->getImage($imageResource->getName()."_thumb", $imageResource->getExtension(), false, false);
-            $imageResource->setThumb($imageThumb);
+        if(self::isBitmapImage($extension)) {
+            $imageResource = new BitmapImageFileResource($actualPath, $name, $extension);
         } else {
-            if($this->fileExists($imageResource->getName()."_thumb", "png")){
-                $imageThumb = $this->getImage($imageResource->getName()."_thumb", "png", false, false);
-                $imageResource->setThumb($imageThumb);
-            }
+            $imageResource = new VectorImageFileResource($actualPath, $name, $extension);
         }
 
         return $imageResource;
@@ -545,7 +537,7 @@ class FileCommander
 
     /**
      * @param bool $sort
-     * @return ImageFileResource[]
+     * @return AbstractImageFileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
@@ -556,7 +548,7 @@ class FileCommander
     /**
      * @param string $pattern
      * @param bool $sort
-     * @return ImageFileResource[]
+     * @return array
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
