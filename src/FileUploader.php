@@ -507,7 +507,7 @@ class FileUploader {
                 $this->tmpDirCommander->copyFileToAnotherDirectory($newName, $file["only_extension"], $this->targetDirCommander->getRelativePath());
                 $this->tmpDirCommander->removeFile($newName.".".$file["only_extension"]);
 
-                $vectorImageResource = $this->targetDirCommander->getFile($newName, $file["only_extension"]);
+                $vectorImageResource = $this->targetDirCommander->getImage($newName, $file["only_extension"]);
 
                 array_push($this->uploadedFiles["images"], ['original' => $vectorImageResource]);
 
