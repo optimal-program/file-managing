@@ -92,8 +92,8 @@ class FileUploader {
                     foreach ($values as $key => $value) {
                         $this->_FILES[$inputName][$key][$param] = $value;
                         if ($param == "name") {
-                            $this->_FILES[$inputName][$key]["only_name"] = strtolower(mb_convert_encoding(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_FILENAME), 'UTF-8', 'UTF-8'));
-                            $this->_FILES[$inputName][$key]["only_extension"] = strtolower(mb_convert_encoding(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_EXTENSION), 'UTF-8', 'UTF-8'));
+                            $this->_FILES[$inputName][$key]["only_name"] = strtolower(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_FILENAME));
+                            $this->_FILES[$inputName][$key]["only_extension"] = strtolower(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_EXTENSION));
                         }
                     }
                 }
@@ -101,8 +101,8 @@ class FileUploader {
                 foreach ($filesItems as $param => $value) {
                     $this->_FILES[$inputName][0][$param] = $value;
                     if ($param == "name") {
-                        $this->_FILES[$inputName][0]["only_name"] = strtolower(mb_convert_encoding(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_FILENAME), 'UTF-8', 'UTF-8'));
-                        $this->_FILES[$inputName][0]["only_extension"] = strtolower(mb_convert_encoding(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_EXTENSION), 'UTF-8', 'UTF-8'));
+                        $this->_FILES[$inputName][0]["only_name"] = strtolower(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_FILENAME));
+                        $this->_FILES[$inputName][0]["only_extension"] = strtolower(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_EXTENSION));
                     }
                 }
             }
