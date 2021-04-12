@@ -25,16 +25,16 @@ final class ImageManageGDResource extends ImageManageResource
             case "jpg":
             case "jpeg":
             case "jfif":
-                $resource = imagecreatefromjpeg($this->image->getFilePath());
+                $resource = @imagecreatefromjpeg($this->image->getFilePath());
                 break;
             case "png":
-                $resource = imagecreatefrompng($this->image->getFilePath());
+                $resource = @imagecreatefrompng($this->image->getFilePath());
                 break;
             case "gif":
-                $resource = imagecreatefromgif($this->image->getFilePath());
+                $resource = @imagecreatefromgif($this->image->getFilePath());
                 break;
             case "webp":
-                $resource = imagecreatefromwebp($this->image->getFilePath());
+                $resource = @imagecreatefromwebp($this->image->getFilePath());
                 break;
             default:
                 throw new GDException('Unknown image extension: '.$this->image->getExtension().'');

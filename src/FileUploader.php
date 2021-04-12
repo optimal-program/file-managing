@@ -63,10 +63,10 @@ class FileUploader {
     private $uploadedFiles;
 
     /**
-     * @return FileUploader|null
+     * @return FileUploader
      */
     public static function getInstance(){
-        if(self::$instance == null){
+        if(is_null(self::$instance)){
             self::$instance = new FileUploader();
         }
         return self::$instance;
