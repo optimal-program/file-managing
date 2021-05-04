@@ -10,6 +10,7 @@ use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
+use Optimal\FileManaging\resources\AbstractFileResource;
 use Optimal\FileManaging\resources\AbstractImageFileResource;
 use Optimal\FileManaging\resources\BitmapImageFileResource;
 use Optimal\FileManaging\resources\VectorImageFileResource;
@@ -53,11 +54,11 @@ class FileCommander
         $validPath = self::getValidPath($path);
         $relative = true;
 
-        if ($validPath == SystemPaths::getScriptPath() . "/" . $path && $validPath == $path) {
+        if ($validPath === SystemPaths::getScriptPath() . "/" . $path && $validPath === $path) {
             $relative = false;
         }
 
-        if ($validPath == null) {
+        if (is_null($validPath)) {
             throw new DirectoryNotFoundException("Directory with " . ($relative ? "relative" : "absolute") . " path: '" . $path . "' " . ($relative ? " and with absolute path: '" . SystemPaths::getScriptPath() . "/" . $path . "'" : "") . " not found ");
         }
 
@@ -99,12 +100,12 @@ class FileCommander
     }
 
     /**
-     * @return string|null
+     * @return string
      * @throws DirectoryNotFoundException
      */
-    public function getAbsolutePath(): ?string
+    public function getAbsolutePath(): string
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -121,7 +122,7 @@ class FileCommander
      */
     public function getRelativePath(): string
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
         return ltrim(str_replace(SystemPaths::getScriptPath(), "", $this->actualPath), "/");
@@ -150,9 +151,9 @@ class FileCommander
      * @param string $name
      * @throws DirectoryNotFoundException
      */
-    public function moveToDirectory(string $name)
+    public function moveToDirectory(string $name): void
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -169,13 +170,13 @@ class FileCommander
     /**
      * @throws DirectoryNotFoundException
      */
-    public function moveUp()
+    public function moveUp(): void
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
-        if ($this->basePath != $this->actualPath) {
+        if ($this->basePath !== $this->actualPath) {
             $parts = explode("/", $this->actualPath);
             unset($parts[count($parts) - 1]);
             $this->actualPath = implode("/", $parts);
@@ -189,7 +190,7 @@ class FileCommander
      */
     public function directoryExists(string $name): bool
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
         return file_exists($this->actualPath . "/" . $name) && is_dir($this->actualPath . "/" . $name);
@@ -202,9 +203,9 @@ class FileCommander
      * @throws CreateDirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function addDirectory(string $dirName, bool $moveToDir = false, int $chmod = 0777)
+    public function addDirectory(string $dirName, bool $moveToDir = false, int $chmod = 0777): void
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -224,12 +225,12 @@ class FileCommander
 
     /**
      * @param bool $sort
-     * @return array[string]
+     * @return array
      * @throws DirectoryNotFoundException
      */
     public function getDirectories(bool $sort = true): array
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -240,20 +241,19 @@ class FileCommander
         if ($sort) {
             return $this->sortFiles($dirs);
         }
-        else {
-            return $dirs;
-        }
+
+        return $dirs;
     }
 
     /**
      * @param string $regex
      * @param bool $sort
-     * @return array[string]
+     * @return array
      * @throws DirectoryNotFoundException
      */
     public function searchDirectories(string $regex = ".*", bool $sort = true): array
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -264,9 +264,8 @@ class FileCommander
         if ($sort) {
             return $this->sortFiles($dirs);
         }
-        else {
-            return $dirs;
-        }
+
+        return $dirs;
     }
 
     /**
@@ -275,9 +274,9 @@ class FileCommander
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
      */
-    public function removeDir(?string $name = null)
+    public function removeDir(?string $name = null): void
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -307,14 +306,14 @@ class FileCommander
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
      */
-    public function clearDir(?string $name = null)
+    public function clearDir(?string $name = null): void
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
         $path = $this->actualPath;
-        if ($name != null) {
+        if (!is_null($name)) {
             $path .= "/" . $name;
             if (!$this->directoryExists($name)) {
                 throw new DirectoryNotFoundException("Directory : " . $path . " not found");
@@ -336,7 +335,7 @@ class FileCommander
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      */
-    private function DeleteDir(string $path)
+    private function DeleteDir(string $path): void
     {
         $files = array_diff(scandir($path), array('.', '..'));
 
@@ -363,10 +362,10 @@ class FileCommander
      * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function renameDir(string $name, string $newName, bool $recursive = false)
+    public function renameDir(string $name, string $newName, bool $recursive = false): void
     {
 
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -386,17 +385,17 @@ class FileCommander
     }
 
     /**
-     * @param string $path
+     * @param string|null $path
      * @param string $name
      * @param string $newName
      * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
-    private function renameDirRec(?string $path, string $name, string $newName)
+    private function renameDirRec(?string $path, string $name, string $newName): void
     {
         foreach ($this->getDirectories() as $dir) {
 
-            if ($dir == $name) {
+            if ($dir === $name) {
                 if (!rename($path . '/' . $dir, $path . "/" . $newName)) {
                     throw new DirectoryException("Renaming directory: " . $path . "/" . $dir . " is not successful");
                 }
@@ -414,11 +413,11 @@ class FileCommander
      */
     public function fileExists(string $name, ?string $extension = null): bool
     {
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
-        if ($extension == null) {
+        if (is_null($extension)) {
             $parts = explode(".", $name);
             $name = $parts[0];
             $extension = $parts[1];
@@ -436,8 +435,7 @@ class FileCommander
      */
     protected function getFilesRegex(string $pattern = ".*", bool $sort = true): array
     {
-
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -453,9 +451,9 @@ class FileCommander
         $actualPath = (string)$this->actualPath;
 
         foreach ($foundFiles as $file) {
-            if (!$this->isImage(pathinfo($this->actualPath . "." . $file, PATHINFO_EXTENSION))) {
+            if (!self::isImage(pathinfo($this->actualPath . "." . $file, PATHINFO_EXTENSION))) {
                 $fileResource = new FileResource($actualPath, $file);
-                array_push($fileResources, $fileResource);
+                $fileResources[] = $fileResource;
             }
         }
 
@@ -468,13 +466,11 @@ class FileCommander
      * @param string|null $extension
      * @return FileResource
      * @throws DirectoryNotFoundException
-     * @throws FileException
      * @throws FileNotFoundException
      */
-    public function getFile(string $name, ?string $extension = null)
+    public function getFile(string $name, ?string $extension = null): FileResource
     {
-
-        if ($extension == null) {
+        if (is_null($extension)) {
             $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
             $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
         }
@@ -521,8 +517,7 @@ class FileCommander
      */
     protected function getImagesRegex(string $pattern = ".*", bool $sort = true, bool $addBackupImage = true, bool $addThumbs = true): array
     {
-
-        if ($this->actualPath == null) {
+        if (is_null($this->actualPath)) {
             throw new DirectoryNotFoundException("No directory set");
         }
 
@@ -556,8 +551,11 @@ class FileCommander
      */
     public function getImage(string $name, ?string $extension = null, bool $addBackupImage = true, bool $addThumb = true): AbstractImageFileResource
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
 
-        if ($extension == null) {
+        if (is_null($extension)) {
             $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
             $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
         }
@@ -576,7 +574,7 @@ class FileCommander
 
     /**
      * @param bool $sort
-     * @return AbstractImageFileResource[]
+     * @return array
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
@@ -607,15 +605,18 @@ class FileCommander
      */
     public function createFile(string $name, ?string $extension = null, string $content = "\n"): bool
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
 
-        if ($name != "") {
+        if ($name !== "") {
 
-            if ($extension == null) {
+            if (is_null($extension)) {
                 $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
                 $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
             }
 
-            if ($extension != "") {
+            if ($extension !== "") {
                 if (!in_array($extension, FilesTypes::DISALLOWED)) {
 
                     if (!$this->fileExists($name, $extension)) {
@@ -648,17 +649,20 @@ class FileCommander
      * @param bool $append
      * @throws CreateFileException
      */
-    public function writeToFile(string $name, ?string $extension, string $content = "\n", bool $append = true)
+    public function writeToFile(string $name, ?string $extension, string $content = "\n", bool $append = true): void
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
 
-        if ($name != "") {
+        if ($name !== "") {
 
-            if ($extension == null) {
+            if (is_null($extension)) {
                 $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
                 $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
             }
 
-            if ($extension != "") {
+            if ($extension !== "") {
 
                 if ($append) {
                     $currentData = file_get_contents($this->actualPath . "/" . $name . "." . $extension);
@@ -688,11 +692,14 @@ class FileCommander
      */
     public function renameFileTo(string $name, ?string $extension = null, string $newName = ""): bool
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
 
-        if ($name != "") {
-            if ($newName != "") {
+        if ($name !== "") {
+            if ($newName !== "") {
 
-                if ($extension == null) {
+                if (is_null($extension)) {
                     $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
                     $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
                 }
@@ -722,8 +729,11 @@ class FileCommander
      * @throws DirectoryNotFoundException
      * @throws FileNotFoundException
      */
-    public function copyPasteFile(string $name, string $extension, string $targetName, string $targetExtension)
+    public function copyPasteFile(string $name, string $extension, string $targetName, string $targetExtension): void
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
 
         if ($this->fileExists($name, $extension)) {
             copy($this->actualPath . "/" . $name . "." . $extension, $this->actualPath . "/" . $targetName . "." . $targetExtension);
@@ -741,10 +751,13 @@ class FileCommander
      * @param string|null $renameTo
      * @return bool
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
     public function copyFileFromAnotherDirectory(string $path, ?string $name = null, ?string $extension = null, ?string $renameTo = null): bool
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
+
         $validPath = self::checkPath($path);
 
         if (!is_dir($validPath)) {
@@ -753,7 +766,7 @@ class FileCommander
             $validPath = pathinfo($validPath, PATHINFO_DIRNAME);
         }
         else {
-            if ($extension == null) {
+            if (is_null($extension)) {
                 $name = pathinfo($validPath . "/" . $name, PATHINFO_FILENAME);
                 $extension = pathinfo($validPath . "/" . $name, PATHINFO_EXTENSION);
 
@@ -762,7 +775,7 @@ class FileCommander
 
         $validPath = self::checkPath($validPath . "/" . $name . "." . $extension);
 
-        if (copy($validPath, $this->actualPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+        if (copy($validPath, $this->actualPath . "/" . (!is_null($renameTo) ? $renameTo : $name) . "." . $extension)) {
             return true;
         }
 
@@ -781,8 +794,11 @@ class FileCommander
      */
     public function copyFileToAnotherDirectory(string $name, ?string $extension, string $path, ?string $renameTo = null): bool
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
 
-        if ($extension == null) {
+        if (is_null($extension)) {
             $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
             $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
         }
@@ -808,9 +824,13 @@ class FileCommander
      * @param string $pattern
      * @throws DeleteFileException
      */
-    public function removeFile(string $pattern)
+    public function removeFile(string $pattern): void
     {
-        if ($pattern != "") {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
+
+        if ($pattern !== "") {
 
             $files = glob($this->actualPath . "/" . $pattern);
 
@@ -832,13 +852,13 @@ class FileCommander
      * @param string $destinationPath
      * @param int $permissions
      */
-    private function copyDirectoryToRecursive(string $targetPath, string $destinationPath, int $permissions = 775)
+    private function copyDirectoryToRecursive(string $targetPath, string $destinationPath, int $permissions = 775): void
     {
 
         $dir = dir($targetPath);
         while (false !== $entry = $dir->read()) {
             // Skip pointers
-            if ($entry == '.' || $entry == '..') {
+            if ($entry === '.' || $entry === '..') {
                 continue;
             }
             if (is_file($targetPath . "/" . $entry)) {
@@ -859,8 +879,12 @@ class FileCommander
      * @param int $permissions
      * @throws DirectoryNotFoundException
      */
-    public function copyDirectoryTo(string $destPath, int $permissions = 775)
+    public function copyDirectoryTo(string $destPath, int $permissions = 775): void
     {
+        if (is_null($this->actualPath)) {
+            throw new DirectoryNotFoundException("No directory set");
+        }
+
         $validPath = self::checkPath($destPath);
         $this->copyDirectoryToRecursive($this->getAbsolutePath(), $validPath, $permissions);
     }
