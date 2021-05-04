@@ -52,28 +52,48 @@ final class ImageManageGDResource extends ImageManageResource
     }
 
     /**
-     * @param int $width
-     * @param int $height
-     * @param int $x
-     * @param int $y
+     * @param int|null $maxWidth
+     * @param int|null $maxHeight
      */
-    protected function reSampleImg(int $width, int $height, int $x = 0, int $y = 0): void
+    public function maxResize(int $maxWidth = null, int $maxHeight = null): void
     {
+        $imgWidth = $this->simpleImage->getWidth();
+        $imgHeight = $this->simpleImage->getHeight();
 
-        if ($x >= 0 || $y >= 0) {
-            $this->cropImage($x, $y, $width, $height);
-        }
-        else {
-            $this->simpleImage->resize($width, $height);
+        if($imgWidth > $maxWidth || $imgHeight > $maxHeight){
+
+            if($imgWidth >= $imgHeight){
+                $this->simpleImage->resize($maxWidth);
+            } else {
+                $this->simpleImage->resize(null, $maxWidth);
+            }
+
         }
 
         $this->image->setWidth($this->simpleImage->getWidth());
         $this->image->setHeight($this->simpleImage->getHeight());
+    }
 
-        $mime = $this->simpleImage->getMimeType();
-        $mimes = new \Mimey\MimeTypes();
+    /**
+     * @param int|null $width
+     * @param int|null $height
+     */
+    public function resize(?int $width = null, ?int $height = null): void
+    {
+        $this->simpleImage->resize($width, $height);
+        $this->image->setWidth($this->simpleImage->getWidth());
+        $this->image->setHeight($this->simpleImage->getHeight());
+    }
 
-        $this->image->setNewExtension($mimes->getExtension($mime));
+    /**
+     * @param int $x
+     * @param int $y
+     * @param int $width
+     * @param int $height
+     */
+    public function cropImage(int $x, int $y, int $width, int $height): void
+    {
+        $this->simpleImage->crop($x, $y, $x + $width, $y + $height);
     }
 
     public function show(): void
@@ -122,7 +142,6 @@ final class ImageManageGDResource extends ImageManageResource
             $filesWithSameName = $this->commander->searchImages($this->image->getName());
         }
 
-
         if (!empty($filesWithSameName)) {
             foreach ($filesWithSameName as $file) {
                 if ($file->getExtension() !== $this->image->getExtension()) {
@@ -131,17 +150,10 @@ final class ImageManageGDResource extends ImageManageResource
             }
         }
 
-        if (!is_null($this->image->getNewExtension())) {
-            $extension = $this->image->getNewExtension();
-        }
-        else {
-            $extension = $this->image->getExtension();
-        }
-
         $fileDestination = $this->commander->getAbsolutePath() . "/" . $pom . $this->image->getNewNameExtension();
         $finalDestination = $this->commander->getAbsolutePath() . "/" . $this->image->getNewNameExtension();
 
-        $this->simpleImage->toFile($finalDestination, $extension);
+        $this->simpleImage->toFile($fileDestination);
 
         if ($sameNameInSameDir) {
             $this->commander->removeFile($this->image->getNameExtension());
@@ -149,7 +161,6 @@ final class ImageManageGDResource extends ImageManageResource
         }
 
         $this->commander->setPath($this->image->getFileDirectoryPath());
-
     }
 
 }

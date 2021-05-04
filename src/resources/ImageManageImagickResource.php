@@ -1,4 +1,5 @@
 <?php
+
 namespace Optimal\FileManaging\resources;
 
 use Optimal\FileManaging\FileCommander;

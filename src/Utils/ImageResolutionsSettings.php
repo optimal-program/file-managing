@@ -15,16 +15,17 @@ class ImageResolutionsSettings
     /**
      * @param array $extensions
      */
-    public function setDefaultExtensions(array $extensions){
+    public function setDefaultExtensions(array $extensions):void
+    {
         $this->defaultExtensions = $extensions;
     }
 
     /**
      * @param ImageResolutionSettings $settings
      */
-    public function addResolutionSettingsByObject(ImageResolutionSettings $settings)
+    public function addResolutionSettingsByObject(ImageResolutionSettings $settings):void
     {
-        array_push($this->resolutions, $settings);
+        $this->resolutions[] = $settings;
     }
 
     /**
@@ -33,15 +34,18 @@ class ImageResolutionsSettings
      * @param array $extensions
      * @param string $resizeType
      */
-    public function addResolutionSettings($width, $height = null, $extensions = [], $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
+    public function addResolutionSettings($width, $height = null, $extensions = [])
     {
-        if(empty($extensions) && !empty($this->defaultExtensions)){
+        if (empty($extensions) && !empty($this->defaultExtensions)) {
             $extensions = $this->defaultExtensions;
         }
-        array_push($this->resolutions, new ImageResolutionSettings($width, $height, $extensions, $resizeType));
+        $this->resolutions[] = new ImageResolutionSettings($width, $height, $extensions);
     }
 
-    public function getResolutionsSettings()
+    /**
+     * @return array
+     */
+    public function getResolutionsSettings():array
     {
         return $this->resolutions;
     }

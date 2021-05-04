@@ -439,7 +439,7 @@ class FileUploader
                     $imageManageResource->autoRotate();
                 }
 
-                $imageManageResource->resize($this->maxImageWidth, $this->maxImageHeight);
+                $imageManageResource->maxResize($this->maxImageWidth, $this->maxImageHeight);
 
                 // TODO image crop
                 /*if ($this->imageCropSettings != null) {
@@ -460,8 +460,8 @@ class FileUploader
 
                     // TODO image thumb crop
 
-                    $imageManageResourceV->getSourceImageResource()
-                        ->setNewName($newName . "-thumb");
+                    $resource = $imageManageResourceV->getSourceImageResource();
+                    $resource->setNewName($newName . "-thumb");
                     $imageManageResourceV->save();
 
                     $thumbImageResource = $imageManageResourceV->getOutputImageResource();
@@ -522,7 +522,7 @@ class FileUploader
     /**
      * @return array|UploadedFilesResource
      */
-    public function getUploadedFiles():array
+    public function getUploadedFiles(): array
     {
         return new UploadedFilesResource($this->uploadedFiles["files"], $this->uploadedFiles["images"]);
     }
@@ -530,7 +530,7 @@ class FileUploader
     /**
      * @return array
      */
-    public function getSuccessMessages():array
+    public function getSuccessMessages(): array
     {
         return $this->successMessages;
     }
@@ -538,12 +538,12 @@ class FileUploader
     /**
      * @return array
      */
-    public function getErrorMessages():array
+    public function getErrorMessages(): array
     {
         return $this->errorMessages;
     }
 
-    public function clear():void
+    public function clear(): void
     {
         $this->uploadedFiles = ["images" => [], "files" => []];
         $this->successMessages = [];

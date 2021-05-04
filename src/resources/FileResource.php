@@ -22,7 +22,7 @@ class FileResource extends AbstractFileResource
      */
     public function setPreviewImage(AbstractFileResource $previewImage): void
     {
-        if(!$previewImage instanceof BitmapImageFileResource){
+        if (!$previewImage instanceof BitmapImageFileResource) {
             throw new \Exception('Wrong object type, ImageFileResource is required');
         }
         $this->previewImage = $previewImage;

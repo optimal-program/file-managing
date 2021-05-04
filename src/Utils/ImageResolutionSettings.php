@@ -1,8 +1,6 @@
-<?php
-
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\Utils;
-
 
 use Optimal\FileManaging\resources\ImageManageResource;
 
@@ -16,9 +14,6 @@ class ImageResolutionSettings
     /** @var int|null */
     private $height;
 
-    /** @var string */
-    private $resizeType;
-
     /** @var array */
     private $extensions;
 
@@ -29,15 +24,14 @@ class ImageResolutionSettings
      * @param array $extensions
      * @param string $resizeType
      */
-    public function __construct($width, $height = null, $extensions = [], $resizeType = ImageManageResource::RESIZE_TYPE_SHRINK_ONLY)
+    public function __construct($width, $height = null, $extensions = [])
     {
-        if(empty($extensions)){
+        if (empty($extensions)) {
             $extensions = [self::EXTENSION_DEFAULT];
         }
 
         $this->width = $width;
         $this->height = $height;
-        $this->resizeType = $resizeType;
         $this->extensions = $extensions;
     }
 
@@ -71,22 +65,6 @@ class ImageResolutionSettings
     public function setHeight(?int $height): void
     {
         $this->height = $height;
-    }
-
-    /**
-     * @return string
-     */
-    public function getResizeType(): string
-    {
-        return $this->resizeType;
-    }
-
-    /**
-     * @param string $resizeType
-     */
-    public function setResizeType(string $resizeType): void
-    {
-        $this->resizeType = $resizeType;
     }
 
     /**

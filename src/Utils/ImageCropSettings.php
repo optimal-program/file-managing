@@ -17,7 +17,7 @@ class ImageCropSettings
     private $x2;
     private $y2;
 
-    function __construct()
+    public function __construct()
     {
         $this->x1 = 0;
         $this->x2 = 0;
@@ -31,7 +31,7 @@ class ImageCropSettings
     /**
      * @return float|null
      */
-    public function getRatio():?float
+    public function getRatio(): ?float
     {
         return $this->ratio;
     }
@@ -43,14 +43,14 @@ class ImageCropSettings
      */
     public function setRatio(float $ratioW, float $ratioH)
     {
-        $this->ratio = "".$ratioW.":".$ratioH."";
+        $this->ratio = "" . $ratioW . ":" . $ratioH . "";
         return $this;
     }
 
     /**
      * @return int
      */
-    public function getMinWidth():int
+    public function getMinWidth(): int
     {
         return $this->minWidth;
     }
@@ -68,7 +68,7 @@ class ImageCropSettings
     /**
      * @return int
      */
-    public function getMaxWidth():int
+    public function getMaxWidth(): int
     {
         return $this->maxWidth;
     }
@@ -86,7 +86,7 @@ class ImageCropSettings
     /**
      * @return int
      */
-    public function getMinHeight():int
+    public function getMinHeight(): int
     {
         return $this->minHeight;
     }
@@ -120,7 +120,7 @@ class ImageCropSettings
     /**
      * @return bool
      */
-    public function isResizable():bool
+    public function isResizable(): bool
     {
         return $this->resizable;
     }

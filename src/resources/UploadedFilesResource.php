@@ -5,10 +5,13 @@ namespace Optimal\FileManaging\resources;
 class UploadedFilesResource
 {
 
-    private $uploadedFiles = [];
-    private $uploadedImages = [];
+    /** @var array */
+    private $uploadedFiles;
 
-    function __construct($uploadedFiles, $uploadedImages)
+    /** @var array */
+    private $uploadedImages;
+
+    public function __construct($uploadedFiles, $uploadedImages)
     {
         $this->uploadedFiles = $uploadedFiles;
         $this->uploadedImages = $uploadedImages;

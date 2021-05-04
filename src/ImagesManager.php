@@ -13,13 +13,14 @@ use Optimal\FileManaging\resources\ImageManageImagickResource;
 class ImagesManager
 {
 
-    const RESOURCE_TYPE_GD = "gd";
+    const RESOURCE_TYPE_GD      = "gd";
     const RESOURCE_TYPE_IMAGICK = "imagick";
 
     private $newDestination;
     private $commander;
 
-    function __construct(){
+    function __construct()
+    {
         $this->commander = new FileCommander();
     }
 
@@ -27,7 +28,8 @@ class ImagesManager
      * @param string $dir
      * @throws DirectoryNotFoundException
      */
-    public function setSourceDirectory(string $dir){
+    public function setSourceDirectory(string $dir)
+    {
         $validPath = FileCommander::checkPath($dir);
         $this->commander->setPath($validPath);
         $this->setOutputDirectory($validPath);
@@ -37,7 +39,8 @@ class ImagesManager
      * @param string $dir
      * @throws DirectoryNotFoundException
      */
-    public function setOutputDirectory(string $dir){
+    public function setOutputDirectory(string $dir)
+    {
         $validPath = FileCommander::checkPath($dir);
         $this->newDestination = $validPath;
     }
@@ -46,14 +49,16 @@ class ImagesManager
      * @return string
      * @throws DirectoryNotFoundException
      */
-    public function getSourceDirectory():string {
+    public function getSourceDirectory(): string
+    {
         return $this->commander->getAbsolutePath();
     }
 
     /**
      * @return string
      */
-    public function getOutputDirectory():string {
+    public function getOutputDirectory(): string
+    {
         return $this->newDestination;
     }
 
@@ -67,38 +72,39 @@ class ImagesManager
      * @throws FileNotFoundException
      * @throws Exception\GDException|\ImagickException
      */
-    public function loadImageManageResource(string $imgName,?string $imgExtension = null,string $resourceType = self::RESOURCE_TYPE_GD):ImageManageResource
+    public function loadImageManageResource(string $imgName, ?string $imgExtension = null, string $resourceType = self::RESOURCE_TYPE_GD): ImageManageResource
     {
 
-        if(empty($imgName)){
+        if (empty($imgName)) {
             throw new FileException("Image name is required");
         }
 
-        if($imgExtension == null){
-            $imgExtension = pathinfo($this->commander->getAbsolutePath()."/".$imgName, PATHINFO_EXTENSION);
-            $imgName = pathinfo($this->commander->getAbsolutePath()."/".$imgName, PATHINFO_FILENAME);
+        if ($imgExtension == null) {
+            $imgExtension = pathinfo($this->commander->getAbsolutePath() . "/" . $imgName, PATHINFO_EXTENSION);
+            $imgName = pathinfo($this->commander->getAbsolutePath() . "/" . $imgName, PATHINFO_FILENAME);
         }
 
-        if($this->commander->fileExists($imgName, $imgExtension)){
+        if ($this->commander->fileExists($imgName, $imgExtension)) {
 
             $image = $this->commander->getImage($imgName, $imgExtension);
             $image->setNewPath($this->newDestination);
 
             $resource = null;
 
-            switch ($resourceType){
+            switch ($resourceType) {
                 case "gd":
                     $resource = new ImageManageGDResource($image, $this->commander);
-                break;
+                    break;
                 case "imagick":
                     $resource = new ImageManageImagickResource($image, $this->commander);
-                break;
+                    break;
             }
 
             return $resource;
 
-        } else {
-            throw new FileNotFoundException("File: ".$imgName.".".$imgExtension." not found in ".$this->commander->getRelativePath());
+        }
+        else {
+            throw new FileNotFoundException("File: " . $imgName . "." . $imgExtension . " not found in " . $this->commander->getRelativePath());
         }
 
     }

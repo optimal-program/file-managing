@@ -17,9 +17,8 @@ class FileUploaderUploadLimits
     private $maxAllFilesSizeStr;
     private $allowedExtensions;
 
-    function __construct()
+    public function __construct()
     {
-        IniInfo::init();
         $this->iniMaxCount = $this->maxCount = IniInfo::getMaxFilesCount();
         $this->iniMaxFileSize = $this->maxFileSize = IniInfo::getMaxFileSize();
         $this->iniMaxAllFilesSize = $this->maxAllFilesSize = IniInfo::getPostMaxSize();
@@ -32,40 +31,43 @@ class FileUploaderUploadLimits
      * @param string|null $maxAllFilesSizeStr
      * @throws IniException
      */
-    protected function checkIni(?int $maxCount = null, ?string $maxFileSizeStr = null, ?string $maxAllFilesSizeStr = null) {
+    protected function checkIni(?int $maxCount = null, ?string $maxFileSizeStr = null, ?string $maxAllFilesSizeStr = null):void
+    {
 
-        if(!$maxCount){
+        if (!$maxCount) {
             $count = $this->maxCount;
         }
 
-        if(!$maxAllFilesSizeStr){
+        if (!$maxAllFilesSizeStr) {
             $maxFileSizesBytes = $this->maxFileSize;
             $maxFileSizeStr = $this->maxFileSizeStr;
-        } else {
+        }
+        else {
             $maxFileSizesBytes = IniInfo::toBytes($maxAllFilesSizeStr);
         }
 
-        if(!$maxAllFilesSizeStr){
+        if (!$maxAllFilesSizeStr) {
             $maxAllFilesSizeBytes = $this->maxAllFilesSize;
             $maxAllFilesSizeStr = $this->maxAllFilesSizeStr;
-        } else {
+        }
+        else {
             $maxAllFilesSizeBytes = IniInfo::toBytes($maxAllFilesSizeStr);
         }
 
-        if($maxCount > $this->iniMaxCount){
-            throw new IniException("Chosen max count is greater than is allowed in php ini (".$this->maxCount.")");
+        if ($maxCount > $this->iniMaxCount) {
+            throw new IniException("Chosen max count is greater than is allowed in php ini (" . $this->maxCount . ")");
         }
 
-        if($maxFileSizesBytes > $this->iniMaxFileSize){
-            throw new IniException("Chosen max file size is greater than is allowed in php ini (".IniInfo::getMaxFileSize(false).")");
+        if ($maxFileSizesBytes > $this->iniMaxFileSize) {
+            throw new IniException("Chosen max file size is greater than is allowed in php ini (" . IniInfo::getMaxFileSize(false) . ")");
         }
 
-        if($maxAllFilesSizeBytes > $this->iniMaxAllFilesSize){
-            throw new IniException("Chosen max post size is greater than is allowed in php ini (".IniInfo::getPostMaxSize(false).")");
+        if ($maxAllFilesSizeBytes > $this->iniMaxAllFilesSize) {
+            throw new IniException("Chosen max post size is greater than is allowed in php ini (" . IniInfo::getPostMaxSize(false) . ")");
         }
 
-        if(($maxCount * $maxFileSizesBytes) > $maxAllFilesSizeBytes){
-            throw new IniException("Number of max files * max file size (".$count."*".$maxFileSizeStr.") is greater than max post size (".$maxAllFilesSizeStr.")");
+        if (($maxCount * $maxFileSizesBytes) > $maxAllFilesSizeBytes) {
+            throw new IniException("Number of max files * max file size (" . $count . "*" . $maxFileSizeStr . ") is greater than max post size (" . $maxAllFilesSizeStr . ")");
         }
 
     }
@@ -74,12 +76,12 @@ class FileUploaderUploadLimits
      * @param int $count
      * @throws IniException
      */
-    public function setMaxCount(int $count)
+    public function setMaxCount(int $count):void
     {
-        try{
+        try {
             $this->checkIni($count);
             $this->maxCount = $count;
-        } catch (IniException $e){
+        } catch (IniException $e) {
             throw $e;
         }
     }
@@ -88,13 +90,13 @@ class FileUploaderUploadLimits
      * @param string $size
      * @throws IniException
      */
-    public function setMaxFileSize(string $size)
+    public function setMaxFileSize(string $size):void
     {
-        try{
+        try {
             $this->checkIni(null, $size);
             $this->maxFileSize = IniInfo::toBytes($size);
             $this->maxFileSizeStr = $size;
-        } catch (IniException $e){
+        } catch (IniException $e) {
             throw $e;
         }
     }
@@ -103,13 +105,13 @@ class FileUploaderUploadLimits
      * @param string $size
      * @throws IniException
      */
-    public function setMaxPostSize(string $size)
+    public function setMaxPostSize(string $size):void
     {
-        try{
+        try {
             $this->checkIni(null, null, $size);
             $this->maxAllFilesSize = IniInfo::toBytes($size);
             $this->maxAllFilesSizeStr = $size;
-        } catch (IniException $e){
+        } catch (IniException $e) {
             throw $e;
         }
     }
@@ -117,7 +119,7 @@ class FileUploaderUploadLimits
     /**
      * @param array $extensions
      */
-    public function setAllowedExtensions(array $extensions)
+    public function setAllowedExtensions(array $extensions):void
     {
         $this->allowedExtensions = $extensions;
     }
@@ -125,7 +127,7 @@ class FileUploaderUploadLimits
     /**
      * @param array $extensions
      */
-    public function addAllowedExtensions(array $extensions)
+    public function addAllowedExtensions(array $extensions):void
     {
         $intersection = array_intersect($this->allowedExtensions, $extensions);
         $this->allowedExtensions = array_merge($this->allowedExtensions, $intersection);
@@ -134,7 +136,7 @@ class FileUploaderUploadLimits
     /**
      * @return int
      */
-    public function getMaxFilesCount():int
+    public function getMaxFilesCount(): int
     {
         return $this->maxCount;
     }
@@ -142,7 +144,7 @@ class FileUploaderUploadLimits
     /**
      * @return int
      */
-    public function getMaxFileSize():int
+    public function getMaxFileSize(): int
     {
         return $this->maxFileSize;
     }
@@ -150,7 +152,7 @@ class FileUploaderUploadLimits
     /**
      * @return int
      */
-    public function getMaxPostSize():int
+    public function getMaxPostSize(): int
     {
         return $this->maxAllFilesSize;
     }
@@ -158,7 +160,7 @@ class FileUploaderUploadLimits
     /**
      * @return array
      */
-    public function getAllowedExtensions():array
+    public function getAllowedExtensions(): array
     {
         return $this->allowedExtensions;
     }
@@ -166,7 +168,7 @@ class FileUploaderUploadLimits
     /**
      * @return array
      */
-    public function getDisAllowedExtensions()
+    public function getDisAllowedExtensions():array
     {
         return FilesTypes::DISALLOWED;
     }

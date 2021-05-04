@@ -9,8 +9,7 @@
   ],
   "require": {
     "php": ">=7.2",
-    "claviska/simpleimage": "^3.6",
-    "ralouphie/mimey": "^2.1"
+    "claviska/simpleimage": "^3.6"
   },
   "authors": [
     {

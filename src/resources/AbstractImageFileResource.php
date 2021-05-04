@@ -5,9 +5,4 @@ namespace Optimal\FileManaging\resources;
 class AbstractImageFileResource extends AbstractFileResource
 {
 
-    function __construct(string $path, ?string $name = null, ?string $extension = null)
-    {
-        parent::__construct($path, $name, $extension);
-    }
-
 }

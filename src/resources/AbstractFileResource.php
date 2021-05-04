@@ -3,7 +3,6 @@
 namespace Optimal\FileManaging\resources;
 
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
-use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
 use Optimal\FileManaging\FileCommander;
 use Optimal\FileManaging\Utils\SystemPaths;
@@ -15,13 +14,13 @@ abstract class AbstractFileResource
     protected $name;
 
     /** @var string|null */
-    protected $newName = null;
+    protected $newName;
 
     /** @var string */
     protected $extension;
 
     /** @var string|null */
-    protected $newExtension = null;
+    protected $newExtension;
 
     /** @var integer */
     protected $size;
@@ -30,7 +29,7 @@ abstract class AbstractFileResource
     protected $path;
 
     /** @var string|null */
-    protected $newPath = null;
+    protected $newPath;
 
     /**
      * AbstractFileResource constructor.
@@ -39,7 +38,7 @@ abstract class AbstractFileResource
      * @param string|null $extension
      * @throws DirectoryNotFoundException
      */
-    function __construct(string $path,?string $name = null,?string $extension = null)
+    public function __construct(string $path, ?string $name = null, ?string $extension = null)
     {
         $validPath = FileCommander::checkPath($path);
 
@@ -47,7 +46,8 @@ abstract class AbstractFileResource
             $name = pathinfo($validPath, PATHINFO_FILENAME);
             $extension = pathinfo($validPath, PATHINFO_EXTENSION);
             $validPath = pathinfo($validPath, PATHINFO_DIRNAME);
-        } else {
+        }
+        else {
             if ($extension == null) {
                 $filePath = $validPath . "/" . $name;
                 $name = pathinfo($filePath, PATHINFO_FILENAME);
@@ -63,15 +63,15 @@ abstract class AbstractFileResource
         $this->setFileInfo();
     }
 
-    protected function setFileInfo()
+    protected function setFileInfo():void
     {
-        $this->size = filesize($this->path."/".$this->name.".".$this->extension);
+        $this->size = filesize($this->path . "/" . $this->name . "." . $this->extension);
     }
 
     /**
      * @return string
      */
-    public function getExtension():string
+    public function getExtension(): string
     {
         return $this->extension;
     }
@@ -79,7 +79,7 @@ abstract class AbstractFileResource
     /**
      * @return string
      */
-    public function getName():string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -87,23 +87,23 @@ abstract class AbstractFileResource
     /**
      * @return string
      */
-    public function getNameExtension():string
+    public function getNameExtension(): string
     {
-        return $this->name.".".$this->extension;
+        return $this->name . "." . $this->extension;
     }
 
     /**
      * @return string
      */
-    public function getNewNameExtension():string
+    public function getNewNameExtension(): string
     {
-        return ($this->newName != null ? $this->newName : $this->name).".".($this->newExtension != null ? $this->newExtension : $this->extension);
+        return (!is_null($this->newName) ? $this->newName : $this->name) . "." . (!is_null($this->newExtension) ? $this->newExtension : $this->extension);
     }
 
     /**
      * @return string
      */
-    public function getFileDirectoryPath():string
+    public function getFileDirectoryPath(): string
     {
         return $this->path;
     }
@@ -111,31 +111,31 @@ abstract class AbstractFileResource
     /**
      * @return string
      */
-    public function getFilePath():string
+    public function getFilePath(): string
     {
-        return $this->path."/".$this->getNameExtension();
+        return $this->path . "/" . $this->getNameExtension();
     }
 
     /**
      * @return string
      */
-    public function getFileRelativePath():string
+    public function getFileRelativePath(): string
     {
-        return ltrim(str_replace(SystemPaths::getScriptPath(), "", $this->path), "/")."/". $this->name.".".$this->extension;
+        return ltrim(str_replace(SystemPaths::getScriptPath(), "", $this->path), "/") . "/" . $this->name . "." . $this->extension;
     }
 
     /**
      * @return string
      */
-    public function getUrlToFile():string
+    public function getUrlToFile(): string
     {
-        return SystemPaths::getBaseUrl() . "/" . $this->path ."/". $this->name.".".$this->extension;
+        return SystemPaths::getBaseUrl() . "/" . $this->path . "/" . $this->name . "." . $this->extension;
     }
 
     /**
      * @return int
      */
-    public function getFileSize():int
+    public function getFileSize(): int
     {
         return $this->size;
     }
@@ -153,7 +153,7 @@ abstract class AbstractFileResource
     /**
      * @return string|null
      */
-    public function getNewName():?string
+    public function getNewName(): ?string
     {
         return $this->newName;
     }
@@ -171,7 +171,7 @@ abstract class AbstractFileResource
     /**
      * @return string|null
      */
-    public function getNewExtension():?string
+    public function getNewExtension(): ?string
     {
         return $this->newExtension;
     }
@@ -189,7 +189,7 @@ abstract class AbstractFileResource
     /**
      * @return string|null
      */
-    public function getFileNewDirectoryPath():?string
+    public function getFileNewDirectoryPath(): ?string
     {
         return $this->newPath;
     }
@@ -197,26 +197,30 @@ abstract class AbstractFileResource
     /**
      * @return string|null
      */
-    public function getFileNewPath():?string
+    public function getFileNewPath(): ?string
     {
-        if($this->newPath == null){
+        if ($this->newPath == null) {
             return null;
         }
 
         $name = $this->getNewNameExtension();
 
-        return $this->newPath."/".$name;
+        return $this->newPath . "/" . $name;
     }
 
-    public function applyNewSettings()
+    /**
+     * @throws DirectoryNotFoundException
+     * @throws FileNotFoundException
+     */
+    public function applyNewSettings():void
     {
-        if($this->newName != null) {
+        if (!is_null($this->newName)) {
             $this->name = $this->newName;
         }
-        if($this->newExtension != null) {
+        if (!is_null($this->newExtension)) {
             $this->extension = $this->newExtension;
         }
-        if($this->newPath != null) {
+        if (!is_null($this->newPath)) {
             if (!file_exists($this->newPath)) {
                 throw new DirectoryNotFoundException("Directory " . $this->newPath . " not found");
             }
@@ -233,9 +237,8 @@ abstract class AbstractFileResource
      * @param string $string
      * @return string
      */
-    public function parseString(string $string):string
+    public function parseString(string $string): string
     {
-
         $string = str_replace("{realName}", $this->getName(), $string);
         $string = str_replace("{realExtension}", $this->getExtension(), $string);
         $string = str_replace("{realNameEx}", $this->getNameExtension(), $string);

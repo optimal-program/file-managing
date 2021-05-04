@@ -2,40 +2,19 @@
 
 namespace Optimal\FileManaging\resources;
 
+use Optimal\FileManaging\Utils\FilesTypes;
+
 class BitmapImageFileResource extends AbstractImageFileResource
 {
 
     protected $width;
     protected $height;
-    protected $orientation;
 
-    /**
-     * BitmapImageFileResource constructor.
-     * @param string $path
-     * @param string|null $name
-     * @param string|null $extension
-     * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
-     */
-    function __construct(string $path, ?string $name = null,?string $extension = null)
-    {
-        parent::__construct($path, $name, $extension);
-    }
-
-    protected function setFileInfo()
+    protected function setFileInfo():void
     {
         parent::setFileInfo();
 
-        $exif = @exif_read_data($this->path."/".$this->name.".".$this->extension);
-
-        if ($exif) {
-            if (isset($exif["COMPUTED"]["Orientation"])) {
-                $this->orientation = $exif["COMPUTED"]["Orientation"];
-            } else {
-                $this->orientation = 1;
-            }
-        }
-
-        list($width, $height) = getimagesize($this->path."/".$this->name.".".$this->extension);
+        list($width, $height) = getimagesize($this->path . "/" . $this->name . "." . $this->extension);
         $this->width = $width;
         $this->height = $height;
 
@@ -44,7 +23,7 @@ class BitmapImageFileResource extends AbstractImageFileResource
     /**
      * @return int
      */
-    public function getWidth():int
+    public function getWidth(): int
     {
         return $this->width;
     }
@@ -62,7 +41,7 @@ class BitmapImageFileResource extends AbstractImageFileResource
     /**
      * @return int
      */
-    public function getHeight():int
+    public function getHeight(): int
     {
         return $this->height;
     }
@@ -78,49 +57,42 @@ class BitmapImageFileResource extends AbstractImageFileResource
     }
 
     /**
-     * @return int
+     * @return bool
      */
-    public function getOrientation():int
+    public function isWebp(): bool
     {
-        return $this->orientation;
+        return in_array($this->extension, FilesTypes::IMAGES_WEBP);
     }
 
     /**
-     * @param int $orientation
-     * @return $this
+     * @return bool
      */
-    public function setOrientation(int $orientation)
+    public function isJPG(): bool
     {
-        $this->orientation = $orientation;
-        return $this;
+        return in_array($this->extension, FilesTypes::IMAGES_JPG);
     }
 
     /**
      * @return bool
      */
-    public function isJPG():bool{
-        return $this->extension == "jpg" || $this->extension == "jpeg";
+    public function isPNG(): bool
+    {
+        return in_array($this->extension, FilesTypes::IMAGES_PNG);
     }
 
     /**
      * @return bool
      */
-    public function isPNG():bool{
-        return $this->extension == "png";
-    }
-
-    /**
-     * @return bool
-     */
-    public function isGIF():bool{
-        return $this->extension == "gif";
+    public function isGIF(): bool
+    {
+        return in_array($this->extension, FilesTypes::IMAGES_GIF);
     }
 
     /**
      * @param string $string
      * @return string
      */
-    public function parseString(string $string):string
+    public function parseString(string $string): string
     {
 
         $string = parent::parseString($string);
