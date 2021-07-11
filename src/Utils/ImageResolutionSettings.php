@@ -14,25 +14,15 @@ class ImageResolutionSettings
     /** @var int|null */
     private $height;
 
-    /** @var array */
-    private $extensions;
-
     /**
      * ImageResolutionSettings constructor.
      * @param $width
-     * @param int $height
-     * @param array $extensions
-     * @param string $resizeType
+     * @param null $height
      */
-    public function __construct($width, $height = null, $extensions = [])
+    public function __construct($width, $height = null)
     {
-        if (empty($extensions)) {
-            $extensions = [self::EXTENSION_DEFAULT];
-        }
-
         $this->width = $width;
         $this->height = $height;
-        $this->extensions = $extensions;
     }
 
     /**
@@ -65,22 +55,6 @@ class ImageResolutionSettings
     public function setHeight(?int $height): void
     {
         $this->height = $height;
-    }
-
-    /**
-     * @return array
-     */
-    public function getExtensions(): array
-    {
-        return $this->extensions;
-    }
-
-    /**
-     * @param array $extensions
-     */
-    public function setExtensions(array $extensions): void
-    {
-        $this->extensions = $extensions;
     }
 
 }
