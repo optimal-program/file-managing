@@ -16,7 +16,6 @@ class ImagesManager
     const RESOURCE_TYPE_GD      = "gd";
     const RESOURCE_TYPE_IMAGICK = "imagick";
 
-    private $newDestination;
     private $commander;
 
     public function __construct()
@@ -32,17 +31,6 @@ class ImagesManager
     {
         $validPath = FileCommander::checkPath($dir);
         $this->commander->setPath($validPath);
-        $this->setOutputDirectory($validPath);
-    }
-
-    /**
-     * @param string $dir
-     * @throws DirectoryNotFoundException
-     */
-    public function setOutputDirectory(string $dir): void
-    {
-        $validPath = FileCommander::checkPath($dir);
-        $this->newDestination = $validPath;
     }
 
     /**
@@ -55,14 +43,6 @@ class ImagesManager
     }
 
     /**
-     * @return string
-     */
-    public function getOutputDirectory(): string
-    {
-        return $this->newDestination;
-    }
-
-    /**
      * @param string $imgName
      * @param string|null $imgExtension
      * @param string $resourceType
@@ -71,6 +51,7 @@ class ImagesManager
      * @throws FileException
      * @throws FileNotFoundException
      * @throws \ImagickException
+     * @throws \Exception
      */
     public function loadImageManageResource(string $imgName, ?string $imgExtension = null, string $resourceType = self::RESOURCE_TYPE_GD): ImageManageResource
     {
@@ -87,7 +68,6 @@ class ImagesManager
         if ($this->commander->fileExists($imgName, $imgExtension)) {
 
             $image = $this->commander->getImage($imgName, $imgExtension);
-            $image->setNewPath($this->newDestination);
 
             $resource = null;
 

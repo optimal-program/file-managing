@@ -38,18 +38,15 @@ abstract class ImageManageResource
 
     /**
      * @return BitmapImageFileResource
-     * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
-     * @throws \Optimal\FileManaging\Exception\FileNotFoundException
      */
     public function getOutputImageResource(): BitmapImageFileResource
     {
-        $targetSource = clone($this->image);
-        $targetSource->applyNewSettings();
-        return $targetSource;
+        return  clone($this->image);
     }
 
     /**
      * @throws \Optimal\FileManaging\Exception\DeleteFileException
+     * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
      */
     public function removeOriginal(): void
     {
@@ -77,6 +74,6 @@ abstract class ImageManageResource
 
     abstract public function show(): void;
 
-    abstract public function save(?string $myTarget = null, ?string $extension = null): void;
+    abstract public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null): void;
 
 }

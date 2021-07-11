@@ -103,40 +103,35 @@ final class ImageManageGDResource extends ImageManageResource
 
     /**
      * @param string|null $myTarget
-     * @param string|null $extension
+     * @param string|null $newName
+     * @param string|null $newExtension
      * @throws \Optimal\FileManaging\Exception\DeleteFileException
      * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
      * @throws \Optimal\FileManaging\Exception\FileException
      */
-    public function save(?string $myTarget = null, ?string $extension = null): void
+    public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null): void
     {
 
         $sameNameInSameDir = false;
-        $newName = $this->image->getNewName();
 
-        if ((is_null($newName) || $this->image->getName() === $newName) && $this->image->getFileDirectoryPath() === $this->image->getFileNewDirectoryPath()) {
+        if ((is_null($newName) || $this->image->getName() === $newName) && $this->image->getFileDirectoryPath() === $myTarget) {
             $sameNameInSameDir = true;
         }
 
         $pom = "";
-        if ($sameNameInSameDir && $this->image->getFileDirectoryPath() === $this->image->getFileNewDirectoryPath()) {
+        if ($sameNameInSameDir && $this->image->getFileDirectoryPath() === $myTarget) {
             $pom = "_";
         }
 
         if (!is_null($myTarget)) {
             $this->commander->setPath($myTarget);
-            $this->image->setNewPath($myTarget);
         }
         else {
-            $this->commander->setPath($this->image->getFileNewDirectoryPath());
+            $this->commander->setPath($this->image->getFileDirectoryPath());
         }
 
-        if (!is_null($extension)) {
-            $this->image->setNewExtension($extension);
-        }
-
-        if (!is_null($this->image->getNewName())) {
-            $filesWithSameName = $this->commander->searchImages($this->image->getNewName());
+        if (!is_null($newName)) {
+            $filesWithSameName = $this->commander->searchImages($newName);
         }
         else {
             $filesWithSameName = $this->commander->searchImages($this->image->getName());
@@ -150,10 +145,13 @@ final class ImageManageGDResource extends ImageManageResource
             }
         }
 
-        $fileDestination = $this->commander->getAbsolutePath() . "/" . $pom . $this->image->getNewNameExtension();
-        $finalDestination = $this->commander->getAbsolutePath() . "/" . $this->image->getNewNameExtension();
+        $extension = $newExtension ?? $this->image->getExtension();
+        $name = $newName ?? $this->image->getName();
 
-        $this->simpleImage->toFile($fileDestination);
+        $fileDestination = $this->commander->getAbsolutePath() . "/" . $pom . $name . '.' . $extension;
+        $finalDestination = $this->commander->getAbsolutePath() . "/"  . $name . '.' . $extension;
+
+        $this->simpleImage->toFile($fileDestination, 'image/' . ($extension === "jpg" || $extension === 'jpeg') ? 'jpeg' : $extension);
 
         if ($sameNameInSameDir) {
             $this->commander->removeFile($this->image->getNameExtension());
@@ -161,6 +159,16 @@ final class ImageManageGDResource extends ImageManageResource
         }
 
         $this->commander->setPath($this->image->getFileDirectoryPath());
+
+        if(!is_null($newName)) {
+            $this->image->setName($newName);
+        }
+        if(!is_null($newExtension)) {
+            $this->image->setExtension($newExtension);
+        }
+        if (!is_null($myTarget)) {
+            $this->image->setFileDirectoryPath($myTarget);
+        }
     }
 
 }

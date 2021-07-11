@@ -13,23 +13,14 @@ abstract class AbstractFileResource
     /** @var string */
     protected $name;
 
-    /** @var string|null */
-    protected $newName;
-
     /** @var string */
     protected $extension;
-
-    /** @var string|null */
-    protected $newExtension;
 
     /** @var integer */
     protected $size;
 
     /** @var string */
     protected $path;
-
-    /** @var string|null */
-    protected $newPath;
 
     /**
      * AbstractFileResource constructor.
@@ -77,11 +68,27 @@ abstract class AbstractFileResource
     }
 
     /**
+     * @param string $extension
+     */
+    public function setExtension(string $extension): void
+    {
+        $this->extension = $extension;
+    }
+
+    /**
      * @return string
      */
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     /**
@@ -95,17 +102,17 @@ abstract class AbstractFileResource
     /**
      * @return string
      */
-    public function getNewNameExtension(): string
-    {
-        return (!is_null($this->newName) ? $this->newName : $this->name) . "." . (!is_null($this->newExtension) ? $this->newExtension : $this->extension);
-    }
-
-    /**
-     * @return string
-     */
     public function getFileDirectoryPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * @param $dir
+     */
+    public function setFileDirectoryPath($dir): void
+    {
+        $this->path = $dir;
     }
 
     /**
@@ -138,99 +145,6 @@ abstract class AbstractFileResource
     public function getFileSize(): int
     {
         return $this->size;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setNewName(string $name)
-    {
-        $this->newName = $name;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getNewName(): ?string
-    {
-        return $this->newName;
-    }
-
-    /**
-     * @param string $extension
-     * @return $this
-     */
-    public function setNewExtension(string $extension)
-    {
-        $this->newExtension = $extension;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getNewExtension(): ?string
-    {
-        return $this->newExtension;
-    }
-
-    /**
-     * @param string $path
-     * @return $this
-     */
-    public function setNewPath(string $path)
-    {
-        $this->newPath = $path;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getFileNewDirectoryPath(): ?string
-    {
-        return $this->newPath;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getFileNewPath(): ?string
-    {
-        if ($this->newPath == null) {
-            return null;
-        }
-
-        $name = $this->getNewNameExtension();
-
-        return $this->newPath . "/" . $name;
-    }
-
-    /**
-     * @throws DirectoryNotFoundException
-     * @throws FileNotFoundException
-     */
-    public function applyNewSettings():void
-    {
-        if (!is_null($this->newName)) {
-            $this->name = $this->newName;
-        }
-        if (!is_null($this->newExtension)) {
-            $this->extension = $this->newExtension;
-        }
-        if (!is_null($this->newPath)) {
-            if (!file_exists($this->newPath)) {
-                throw new DirectoryNotFoundException("Directory " . $this->newPath . " not found");
-            }
-            if (!file_exists($this->newPath . "/" . $this->name . "." . $this->extension)) {
-                throw new FileNotFoundException("File " . $this->name . "." . $this->extension . " not found");
-            }
-            $this->path = $this->newPath;
-        }
-
-        $this->setFileInfo();
     }
 
     /**

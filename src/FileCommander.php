@@ -20,8 +20,11 @@ use Optimal\FileManaging\resources\FileResource;
 
 class FileCommander
 {
-    private $actualPath = null;
-    private $basePath = null;
+    /** @var string */
+    private $actualPath;
+
+    /** @var string */
+    private $basePath;
 
     /**
      * @param string $path
@@ -34,11 +37,10 @@ class FileCommander
         if (file_exists($path)) {
             return $path;
         }
-        else {
-            $path = SystemPaths::getScriptPath() . "/" . $path;
-            if (file_exists($path)) {
-                return $path;
-            }
+
+        $path = SystemPaths::getScriptPath() . "/" . $path;
+        if (file_exists($path)) {
+            return $path;
         }
 
         return null;
@@ -644,10 +646,11 @@ class FileCommander
 
     /**
      * @param string $name
-     * @param string $extension
+     * @param string|null $extension
      * @param string $content
      * @param bool $append
      * @throws CreateFileException
+     * @throws DirectoryNotFoundException
      */
     public function writeToFile(string $name, ?string $extension, string $content = "\n", bool $append = true): void
     {
@@ -688,6 +691,7 @@ class FileCommander
      * @param string|null $extension
      * @param string $newName
      * @return bool
+     * @throws DirectoryNotFoundException
      * @throws FileException
      */
     public function renameFileTo(string $name, ?string $extension = null, string $newName = ""): bool
@@ -823,6 +827,7 @@ class FileCommander
     /**
      * @param string $pattern
      * @throws DeleteFileException
+     * @throws DirectoryNotFoundException
      */
     public function removeFile(string $pattern): void
     {

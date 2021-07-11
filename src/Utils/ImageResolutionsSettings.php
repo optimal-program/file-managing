@@ -32,9 +32,8 @@ class ImageResolutionsSettings
      * @param $width
      * @param null $height
      * @param array $extensions
-     * @param string $resizeType
      */
-    public function addResolutionSettings($width, $height = null, $extensions = [])
+    public function addResolutionSettings($width, $height = null, $extensions = []):void
     {
         if (empty($extensions) && !empty($this->defaultExtensions)) {
             $extensions = $this->defaultExtensions;

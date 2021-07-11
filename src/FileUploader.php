@@ -90,7 +90,7 @@ class FileUploader
                 foreach ($filesItems as $param => $values) {
                     foreach ($values as $key => $value) {
                         $this->_FILES[$inputName][$key][$param] = $value;
-                        if ($param == "name") {
+                        if ($param === "name") {
                             $this->_FILES[$inputName][$key]["only_name"] = strtolower(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_FILENAME));
                             $this->_FILES[$inputName][$key]["only_extension"] = strtolower(pathinfo($this->_FILES[$inputName][$key][$param], PATHINFO_EXTENSION));
                         }
@@ -100,7 +100,7 @@ class FileUploader
             else {
                 foreach ($filesItems as $param => $value) {
                     $this->_FILES[$inputName][0][$param] = $value;
-                    if ($param == "name") {
+                    if ($param === "name") {
                         $this->_FILES[$inputName][0]["only_name"] = strtolower(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_FILENAME));
                         $this->_FILES[$inputName][0]["only_extension"] = strtolower(pathinfo($this->_FILES[$inputName][0][$param], PATHINFO_EXTENSION));
                     }
@@ -188,13 +188,13 @@ class FileUploader
         $this->targetDirCommander->setPath($directory);
     }
 
-    /* todo - enable crop images
+    /* TODO - enable crop images
     public function setimagecropsettings(imagecropsettings $settings){
         $this->imagecropsettings = $settings;
     }
     */
 
-    /** todo - enable crop images
+    /** TODO - enable crop images
      * public function setimagethumbcropsettings(imagecropsettings $settings){
      * $this->imagethumbcropsettings = $settings;
      * }
@@ -265,7 +265,7 @@ class FileUploader
                 continue;
             }
 
-            if ($val[0]["error"] == 4) {
+            if ($val[0]["error"] === 4) {
                 return false;
             }
         }
@@ -311,7 +311,7 @@ class FileUploader
      * @throws Exception\GDException
      * @throws \ImagickException
      */
-    public function uploadFile(string $inputName, int $index, ?string $newFileName = null, bool $overwrite = true, callable $beforeUploadCallback = null, callable $afterUploadCallback = null)
+    public function uploadFile(string $inputName, int $index, ?string $newFileName = null, bool $overwrite = true, callable $beforeUploadCallback = null, callable $afterUploadCallback = null):void
     {
         if (!$this->targetDirCommander || !$this->tmpDirCommander) {
             throw new DirectoryException("Temporary or target directory is not defined");
@@ -374,7 +374,7 @@ class FileUploader
             return false;
         }
 
-        if (preg_match("/php|phtml[0-9]*?/i", $file["only_extension"]) || in_array($file["only_extension"], FilesTypes::DISALLOWED) || !in_array($file["only_extension"], $this->uploadLimits->getAllowedExtensions())) {
+        if (preg_match("/php|phtml[\d]*?/i", $file["only_extension"]) || in_array($file["only_extension"], FilesTypes::DISALLOWED) || !in_array($file["only_extension"], $this->uploadLimits->getAllowedExtensions())) {
             $this->errorMessages[] = $this->parseMessage($this->messages["notAllowed"], $file);
             return false;
         }
@@ -398,7 +398,6 @@ class FileUploader
      * @throws Exception\DeleteFileException
      * @throws Exception\FileException
      * @throws Exception\FileNotFoundException
-     * @throws Exception\GDException
      * @throws \ImagickException
      */
     private function moveFile(array $file, string $newName, callable $beforeUploadCallback = null, callable $afterUploadCallback = null): bool
@@ -442,32 +441,28 @@ class FileUploader
                 $imageManageResource->maxResize($this->maxImageWidth, $this->maxImageHeight);
 
                 // TODO image crop
-                /*if ($this->imageCropSettings != null) {
 
-                }*/
-
-                $imageManageResource->save();
+                $imageManageResource->save($this->targetDirCommander->getRelativePath());
                 $originalImageResource = $imageManageResource->getOutputImageResource();
-                $originalImageResourceExt = $originalImageResource->getNewExtension() != null ? $originalImageResource->getNewExtension() : $originalImageResource->getExtension();
+                $originalImageResourceExt = $originalImageResource->getExtension();
 
                 $thumbImageResource = null;
-                if ($this->imageThumbCropSettings != null) {
+                if (!is_null($this->imageThumbCropSettings)) {
 
                     $this->imagesManager->setSourceDirectory($this->targetDirCommander->getRelativePath());
-                    $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
                     $imageManageResourceV = $this->imagesManager->loadImageManageResource($originalImageResource->getName(), $originalImageResourceExt, $this->imagesResourceType);
 
                     // TODO image thumb crop
 
                     $resource = $imageManageResourceV->getSourceImageResource();
-                    $resource->setNewName($newName . "-thumb");
-                    $imageManageResourceV->save();
+                    $imageManageResourceV->save($this->targetDirCommander->getRelativePath(), $newName . "-thumb");
 
                     $thumbImageResource = $imageManageResourceV->getOutputImageResource();
                 }
 
                 $currDir = $this->targetDirCommander->getRelativePath();
+
                 if ($this->backup) {
                     $this->targetDirCommander->addDirectory("backup", true);
                     $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $newName, $file["only_extension"]);
