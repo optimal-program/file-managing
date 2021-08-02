@@ -60,11 +60,12 @@ final class ImageManageGDResource extends ImageManageResource
         $imgWidth = $this->simpleImage->getWidth();
         $imgHeight = $this->simpleImage->getHeight();
 
-        if($imgWidth > $maxWidth || $imgHeight > $maxHeight){
+        if ($imgWidth > $maxWidth || $imgHeight > $maxHeight) {
 
-            if($imgWidth >= $imgHeight){
+            if ($imgWidth >= $imgHeight) {
                 $this->simpleImage->resize($maxWidth);
-            } else {
+            }
+            else {
                 $this->simpleImage->resize(null, $maxWidth);
             }
 
@@ -149,9 +150,9 @@ final class ImageManageGDResource extends ImageManageResource
         $name = $newName ?? $this->image->getName();
 
         $fileDestination = $this->commander->getAbsolutePath() . "/" . $pom . $name . '.' . $extension;
-        $finalDestination = $this->commander->getAbsolutePath() . "/"  . $name . '.' . $extension;
+        $finalDestination = $this->commander->getAbsolutePath() . "/" . $name . '.' . $extension;
 
-        $this->simpleImage->toFile($fileDestination, 'image/' . ($extension === "jpg" || $extension === 'jpeg') ? 'jpeg' : $extension);
+        $this->simpleImage->toFile($fileDestination, 'image/' . (($extension === "jpg" || $extension === 'jpeg') ? 'jpeg' : $extension));
 
         if ($sameNameInSameDir) {
             $this->commander->removeFile($this->image->getNameExtension());
@@ -160,10 +161,10 @@ final class ImageManageGDResource extends ImageManageResource
 
         $this->commander->setPath($this->image->getFileDirectoryPath());
 
-        if(!is_null($newName)) {
+        if (!is_null($newName)) {
             $this->image->setName($newName);
         }
-        if(!is_null($newExtension)) {
+        if (!is_null($newExtension)) {
             $this->image->setExtension($newExtension);
         }
         if (!is_null($myTarget)) {

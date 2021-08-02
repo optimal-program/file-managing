@@ -311,7 +311,7 @@ class FileUploader
      * @throws Exception\GDException
      * @throws \ImagickException
      */
-    public function uploadFile(string $inputName, int $index, ?string $newFileName = null, bool $overwrite = true, callable $beforeUploadCallback = null, callable $afterUploadCallback = null):void
+    public function uploadFile(string $inputName, int $index, ?string $newFileName = null, bool $overwrite = true, callable $beforeUploadCallback = null, callable $afterUploadCallback = null): void
     {
         if (!$this->targetDirCommander || !$this->tmpDirCommander) {
             throw new DirectoryException("Temporary or target directory is not defined");
@@ -430,7 +430,6 @@ class FileUploader
             if (FileCommander::isBitmapImage($file["only_extension"])) {
 
                 $this->imagesManager->setSourceDirectory($this->tmpDirCommander->getRelativePath());
-                $this->imagesManager->setOutputDirectory($this->targetDirCommander->getRelativePath());
 
                 $imageManageResource = $this->imagesManager->loadImageManageResource($newName, $file["only_extension"], $this->imagesResourceType);
 

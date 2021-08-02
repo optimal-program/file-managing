@@ -2,23 +2,10 @@
 
 namespace Optimal\FileManaging\Utils;
 
-use Optimal\FileManaging\resources\ImageManageResource;
-
 class ImageResolutionsSettings
 {
 
     private $resolutions = [];
-
-    /** @var array */
-    private $defaultExtensions = [];
-
-    /**
-     * @param array $extensions
-     */
-    public function setDefaultExtensions(array $extensions):void
-    {
-        $this->defaultExtensions = $extensions;
-    }
 
     /**
      * @param ImageResolutionSettings $settings
@@ -31,14 +18,10 @@ class ImageResolutionsSettings
     /**
      * @param $width
      * @param null $height
-     * @param array $extensions
      */
-    public function addResolutionSettings($width, $height = null, $extensions = []):void
+    public function addResolutionSettings($width, $height = null):void
     {
-        if (empty($extensions) && !empty($this->defaultExtensions)) {
-            $extensions = $this->defaultExtensions;
-        }
-        $this->resolutions[] = new ImageResolutionSettings($width, $height, $extensions);
+        $this->resolutions[] = new ImageResolutionSettings($width, $height);
     }
 
     /**
