@@ -156,7 +156,7 @@ class FileUploader
         $msg = str_replace("{fileName}", $file["only_name"], $msg);
         $msg = str_replace("{fileExtension}", $file["only_extension"], $msg);
         $msg = str_replace("{fileFull}", $file["only_name"] . "." . $file["only_extension"], $msg);
-        $msg = str_replace("{fileSize}", $file["size"], $msg);
+        $msg = str_replace("{fileSize}", (string) $file["size"], $msg);
         return $msg;
     }
 
@@ -415,7 +415,7 @@ class FileUploader
             }
         }
 
-        $success = @move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getRelativePath() . "/" . $newName . "." . $file["only_extension"]);
+        $success = move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getRelativePath() . "/" . $newName . "." . $file["only_extension"]);
 
         if ($success) {
             $this->successMessages[] = $this->parseMessage($this->messages["success"], $file);
