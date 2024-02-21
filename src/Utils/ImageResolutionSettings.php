@@ -2,7 +2,7 @@
 
 namespace Optimal\FileManaging\Utils;
 
-use Optimal\FileManaging\resources\ImageManageResource;
+use Optimal\FileManaging\Resources\ImageManageResource;
 
 class ImageResolutionSettings
 {

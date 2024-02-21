@@ -5,7 +5,7 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\UploadFileException;
-use Optimal\FileManaging\resources\UploadedFilesResource;
+use Optimal\FileManaging\Resources\UploadedFilesResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\ImageCropSettings;
 use Optimal\FileManaging\Utils\FileUploaderUploadLimits;
@@ -415,7 +415,7 @@ class FileUploader
             }
         }
 
-        $success = move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getRelativePath() . "/" . $newName . "." . $file["only_extension"]);
+        $success = move_uploaded_file($file['tmp_name'], $this->tmpDirCommander->getAbsolutePath() . "/" . $newName . "." . $file["only_extension"]);
 
         if ($success) {
             $this->successMessages[] = $this->parseMessage($this->messages["success"], $file);

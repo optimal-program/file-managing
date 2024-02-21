@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Optimal\FileManaging\resources;
+namespace Optimal\FileManaging\Resources;
 
 class FileResource extends AbstractFileResource
 {

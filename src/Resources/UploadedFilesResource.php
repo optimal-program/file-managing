@@ -1,6 +1,6 @@
 <?php
 
-namespace Optimal\FileManaging\resources;
+namespace Optimal\FileManaging\Resources;
 
 class UploadedFilesResource
 {

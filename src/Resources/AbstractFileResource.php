@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Optimal\FileManaging\resources;
+namespace Optimal\FileManaging\Resources;
 
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
-use Optimal\FileManaging\Exception\FileNotFoundException;
 use Optimal\FileManaging\FileCommander;
 use Optimal\FileManaging\Utils\SystemPaths;
 
@@ -34,15 +33,15 @@ abstract class AbstractFileResource
         $validPath = FileCommander::checkPath($path);
 
         if (!is_dir($validPath)) {
-            $name = pathinfo($validPath, PATHINFO_FILENAME);
-            $extension = pathinfo($validPath, PATHINFO_EXTENSION);
-            $validPath = pathinfo($validPath, PATHINFO_DIRNAME);
+            $name = (string) pathinfo($validPath, PATHINFO_FILENAME);
+            $extension = (string) pathinfo($validPath, PATHINFO_EXTENSION);
+            $validPath = (string) pathinfo($validPath, PATHINFO_DIRNAME);
         }
         else {
             if ($extension == null) {
                 $filePath = $validPath . "/" . $name;
-                $name = pathinfo($filePath, PATHINFO_FILENAME);
-                $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+                $name = (string) pathinfo($filePath, PATHINFO_FILENAME);
+                $extension = (string) pathinfo($filePath, PATHINFO_EXTENSION);
             }
         }
 

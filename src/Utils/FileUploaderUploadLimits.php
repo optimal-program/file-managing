@@ -6,16 +6,16 @@ use Optimal\FileManaging\Exception\IniException;
 
 class FileUploaderUploadLimits
 {
-    private $iniMaxCount;
-    private $iniMaxFileSize;
-    private $iniMaxAllFilesSize;
+    private int $iniMaxCount;
+    private int $iniMaxFileSize;
+    private int $iniMaxAllFilesSize;
 
-    private $maxCount;
-    private $maxFileSize;
-    private $maxFileSizeStr;
-    private $maxAllFilesSize;
-    private $maxAllFilesSizeStr;
-    private $allowedExtensions;
+    private int $maxCount;
+    private int $maxFileSize;
+    private ?string $maxFileSizeStr = null;
+    private int $maxAllFilesSize;
+    private ?string $maxAllFilesSizeStr = null;
+    private array $allowedExtensions;
 
     public function __construct()
     {
@@ -38,17 +38,15 @@ class FileUploaderUploadLimits
             $count = $this->maxCount;
         }
 
-        if (!$maxAllFilesSizeStr) {
-            $maxFileSizesBytes = $this->maxFileSize;
-            $maxFileSizeStr = $this->maxFileSizeStr;
+        if (!$maxFileSizeStr) {
+            $maxFileSizeBytes = $this->maxFileSize;
         }
         else {
-            $maxFileSizesBytes = IniInfo::toBytes($maxAllFilesSizeStr);
+            $maxFileSizeBytes = IniInfo::toBytes($maxFileSizeStr);
         }
 
         if (!$maxAllFilesSizeStr) {
             $maxAllFilesSizeBytes = $this->maxAllFilesSize;
-            $maxAllFilesSizeStr = $this->maxAllFilesSizeStr;
         }
         else {
             $maxAllFilesSizeBytes = IniInfo::toBytes($maxAllFilesSizeStr);
@@ -58,16 +56,12 @@ class FileUploaderUploadLimits
             throw new IniException("Chosen max count is greater than is allowed in php ini (" . $this->maxCount . ")");
         }
 
-        if ($maxFileSizesBytes > $this->iniMaxFileSize) {
+        if ($maxFileSizeBytes > $this->iniMaxFileSize) {
             throw new IniException("Chosen max file size is greater than is allowed in php ini (" . IniInfo::getMaxFileSize(false) . ")");
         }
 
         if ($maxAllFilesSizeBytes > $this->iniMaxAllFilesSize) {
             throw new IniException("Chosen max post size is greater than is allowed in php ini (" . IniInfo::getPostMaxSize(false) . ")");
-        }
-
-        if (($maxCount * $maxFileSizesBytes) > $maxAllFilesSizeBytes) {
-            throw new IniException("Number of max files * max file size (" . $count . "*" . $maxFileSizeStr . ") is greater than max post size (" . $maxAllFilesSizeStr . ")");
         }
 
     }

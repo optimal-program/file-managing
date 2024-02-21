@@ -5,10 +5,10 @@ namespace Optimal\FileManaging;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
-use Optimal\FileManaging\resources\BitmapImageFileResource;
-use Optimal\FileManaging\resources\ImageManageGDResource;
-use Optimal\FileManaging\resources\ImageManageResource;
-use Optimal\FileManaging\resources\ImageManageImagickResource;
+use Optimal\FileManaging\Resources\BitmapImageFileResource;
+use Optimal\FileManaging\Resources\ImageManageGDResource;
+use Optimal\FileManaging\Resources\ImageManageResource;
+use Optimal\FileManaging\Resources\ImageManageImagickResource;
 
 class ImagesManager
 {

@@ -10,13 +10,12 @@ use Optimal\FileManaging\Exception\DirectoryException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
-use Optimal\FileManaging\resources\AbstractFileResource;
-use Optimal\FileManaging\resources\AbstractImageFileResource;
-use Optimal\FileManaging\resources\BitmapImageFileResource;
-use Optimal\FileManaging\resources\VectorImageFileResource;
+use Optimal\FileManaging\Resources\AbstractImageFileResource;
+use Optimal\FileManaging\Resources\BitmapImageFileResource;
+use Optimal\FileManaging\Resources\VectorImageFileResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\SystemPaths;
-use Optimal\FileManaging\resources\FileResource;
+use Optimal\FileManaging\Resources\FileResource;
 
 class FileCommander
 {
@@ -215,7 +214,7 @@ class FileCommander
 
         if (!$this->directoryExists($dirName)) {
             umask(0000);
-            if (!mkdir($this->actualPath . "/" . $dirName, $chmod)) {
+            if (!mkdir($concurrentDirectory = $this->actualPath . "/" . $dirName, $chmod) && !is_dir($concurrentDirectory)) {
                 throw new CreateDirectoryException("Creating directory " . $dirName . " in " . $this->actualPath . " is not successful, maybe access rights problem.");
             }
         }
@@ -473,8 +472,8 @@ class FileCommander
     public function getFile(string $name, ?string $extension = null): FileResource
     {
         if (is_null($extension)) {
-            $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
-            $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
+            $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
+            $extension = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
         }
 
         if (!$this->fileExists($name, $extension)) {
@@ -515,7 +514,6 @@ class FileCommander
      * @param bool $addThumbs
      * @return array
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
     protected function getImagesRegex(string $pattern = ".*", bool $sort = true, bool $addBackupImage = true, bool $addThumbs = true): array
     {
@@ -536,7 +534,7 @@ class FileCommander
         foreach ($foundImages as $image) {
             $name = pathinfo($this->actualPath . "./" . $image, PATHINFO_FILENAME);
             $ext = pathinfo($this->actualPath . "./" . $image, PATHINFO_EXTENSION);
-            array_push($imageResources, $this->getImage($name, $ext, $addBackupImage, $addThumbs));
+            $imageResources[] = $this->getImage($name, $ext, $addBackupImage, $addThumbs);
         }
 
         return $imageResources;
@@ -558,8 +556,8 @@ class FileCommander
         }
 
         if (is_null($extension)) {
-            $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
-            $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
+            $extension = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
+            $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
         }
 
         $actualPath = (string)$this->actualPath;
@@ -614,15 +612,15 @@ class FileCommander
         if ($name !== "") {
 
             if (is_null($extension)) {
-                $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
-                $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
+                $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
+                $extension = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
             }
 
             if ($extension !== "") {
                 if (!in_array($extension, FilesTypes::DISALLOWED)) {
 
                     if (!$this->fileExists($name, $extension)) {
-                        $f = fopen($this->actualPath . "/" . $name . "." . $extension, "w+");
+                        $f = fopen($this->actualPath . "/" . $name . "." . $extension, 'wb+');
                         fwrite($f, $content);
                         fclose($f);
                         return true;
@@ -661,8 +659,8 @@ class FileCommander
         if ($name !== "") {
 
             if (is_null($extension)) {
-                $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
-                $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
+                $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
+                $extension = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
             }
 
             if ($extension !== "") {
@@ -704,8 +702,8 @@ class FileCommander
             if ($newName !== "") {
 
                 if (is_null($extension)) {
-                    $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
-                    $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
+                    $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
+                    $extension = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
                 }
 
                 if (rename($this->actualPath . "/" . $name . "." . $extension, $this->actualPath . "/" . $newName . "." . $extension)) {
@@ -715,13 +713,11 @@ class FileCommander
                 return false;
 
             }
-            else {
-                throw new FileException("No file new name is defined");
-            }
+
+            throw new FileException("No file new name is defined");
         }
-        else {
-            throw new FileException("No file name is defined");
-        }
+
+        throw new FileException("No file name is defined");
 
     }
 
@@ -765,14 +761,14 @@ class FileCommander
         $validPath = self::checkPath($path);
 
         if (!is_dir($validPath)) {
-            $name = pathinfo($validPath, PATHINFO_FILENAME);
-            $extension = pathinfo($validPath, PATHINFO_EXTENSION);
+            $name = (string) pathinfo($validPath, PATHINFO_FILENAME);
+            $extension = (string) pathinfo($validPath, PATHINFO_EXTENSION);
             $validPath = pathinfo($validPath, PATHINFO_DIRNAME);
         }
         else {
             if (is_null($extension)) {
-                $name = pathinfo($validPath . "/" . $name, PATHINFO_FILENAME);
-                $extension = pathinfo($validPath . "/" . $name, PATHINFO_EXTENSION);
+                $name = (string) pathinfo($validPath . "/" . $name, PATHINFO_FILENAME);
+                $extension = (string) pathinfo($validPath . "/" . $name, PATHINFO_EXTENSION);
 
             }
         }
@@ -803,8 +799,8 @@ class FileCommander
         }
 
         if (is_null($extension)) {
-            $name = pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
-            $extension = pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
+            $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
+            $extension = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_EXTENSION);
         }
 
         if ($this->fileExists($name, $extension)) {
@@ -818,9 +814,8 @@ class FileCommander
             return false;
 
         }
-        else {
-            throw new FileNotFoundException("File " . $this->actualPath . "/" . $name . "." . $extension . " not found");
-        }
+
+        throw new FileNotFoundException("File " . $this->actualPath . "/" . $name . "." . $extension . " not found");
 
     }
 
@@ -870,7 +865,9 @@ class FileCommander
                 copy($targetPath . "/" . $entry, $destinationPath . "/" . $entry);
             }
             else {
-                mkdir($destinationPath, $permissions);
+                if (!mkdir($destinationPath, $permissions) && !is_dir($destinationPath)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $destinationPath));
+                }
                 $this->copyDirectoryToRecursive($targetPath . "/" . $entry, $targetPath . "/" . $entry);
             }
         }
