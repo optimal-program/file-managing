@@ -513,10 +513,7 @@ class FileUploader
         return true;
     }
 
-    /**
-     * @return array|UploadedFilesResource
-     */
-    public function getUploadedFiles(): array
+    public function getUploadedFiles(): UploadedFilesResource
     {
         return new UploadedFilesResource($this->uploadedFiles["files"], $this->uploadedFiles["images"]);
     }
