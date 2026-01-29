@@ -4,15 +4,11 @@ namespace Optimal\FileManaging\Utils;
 
 class IniInfo
 {
+    private static ?string $UploadMaxFileSize;
 
-    /** @var string|null */
-    private static $UploadMaxFileSize;
+    private static ?string $PostMaxSize;
 
-    /** @var string|null */
-    private static $PostMaxSize;
-
-    /** @var string|null */
-    private static $maxFileUploads;
+    private static ?string $maxFileUploads;
 
     private static function load(): void
     {
@@ -23,14 +19,8 @@ class IniInfo
         }
     }
 
-    /**
-     * @param string $size
-     * @return int
-     */
     public static function toBytes(string $size): int
     {
-
-        $suffix = null;
         $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
         switch (substr($size, -1)) {
@@ -55,7 +45,7 @@ class IniInfo
 
                 //B or no suffix
                 if (is_numeric($suffix[0])) {
-                    return (int)preg_replace('/[^\d]/', '', $size);
+                    return (int) preg_replace('/\D/', '', $size);
                 }
 
                 break;
@@ -69,33 +59,21 @@ class IniInfo
         return $number * (1024 ** $exponent);
     }
 
-    /**
-     * @param bool $toBytes
-     * @return int|string
-     */
-    public static function getPostMaxSize(bool $toBytes = true)
+    public static function getPostMaxSize(bool $toBytes = true): int|string|null
     {
         self::load();
         return $toBytes ? self::toBytes(self::$PostMaxSize) : self::$PostMaxSize;
     }
 
-    /**
-     * @param bool $toBytes
-     * @return int|string
-     */
-    public static function getMaxFileSize(bool $toBytes = true)
+    public static function getMaxFileSize(bool $toBytes = true): int|string|null
     {
         self::load();
         return $toBytes ? self::toBytes(self::$UploadMaxFileSize) : self::$UploadMaxFileSize;
     }
 
-    /**
-     * @return int
-     */
     public static function getMaxFilesCount(): int
     {
         self::load();
         return (int)self::$maxFileUploads;
     }
-
 }

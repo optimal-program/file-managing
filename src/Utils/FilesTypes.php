@@ -12,50 +12,50 @@ final class FilesTypes
 {
 
     // IMAGES
-    const IMAGES_JPG  = ["jpg", "jpeg", "jfif"];
-    const IMAGES_WEBP = ["webp"];
-    const IMAGES_PNG  = ["png"];
-    const IMAGES_GIF  = ["gif"];
-    const IMAGES_SVG  = ["gif"];
+    const array IMAGES_JPG  = ["jpg", "jpeg", "jfif"];
+    const array IMAGES_WEBP = ["webp"];
+    const array IMAGES_PNG = ["png"];
+    const array IMAGES_GIF  = ["gif"];
+    const  array IMAGES_SVG = ["gif"];
 
-    const BITMAP_IMAGES = ["jfif", "webp", "jpg", "jpeg", "png", "gif"];
-    const VECTOR_IMAGES = ["svg"];
-    const IMAGES        = ["jfif", "webp", "jpg", "jpeg", "png", "gif", "svg"];
+    const array BITMAP_IMAGES = ["jfif", "webp", "jpg", "jpeg", "png", "gif"];
+    const array VECTOR_IMAGES = ["svg"];
+    const array IMAGES        = ["jfif", "webp", "jpg", "jpeg", "png", "gif", "svg"];
 
     // DOCUMENTS
-    const DOCUMENTS_MS_WORD  = ["doc", "docx"];
-    const DOCUMENTS_MS_EXCEL = ["xls", "xlsx"];
-    const DOCUMENTS_MS_POWER = ["ppt", "pptx"];
+    const array DOCUMENTS_MS_WORD  = ["doc", "docx"];
+    const array DOCUMENTS_MS_EXCEL = ["xls", "xlsx"];
+    const array DOCUMENTS_MS_POWER = ["ppt", "pptx"];
 
-    const DOCUMENTS_MS = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+    const array DOCUMENTS_MS = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"];
 
-    const DOCUMENTS_OPEN_WORD  = ["odt", "ott"];
-    const DOCUMENTS_OPEN_EXCEL = ["ods", "sdc"];
-    const DOCUMENTS_OPEN_POWER = ["odp", "sdd"];
+    const array DOCUMENTS_OPEN_WORD  = ["odt", "ott"];
+    const array DOCUMENTS_OPEN_EXCEL = ["ods", "sdc"];
+    const array DOCUMENTS_OPEN_POWER = ["odp", "sdd"];
 
-    const DOCUMENTS_OPEN = ["odt", "ott", "ods", "sdc", "odp", "sdd"];
+    const array DOCUMENTS_OPEN = ["odt", "ott", "ods", "sdc", "odp", "sdd"];
 
-    const DOCUMENTS_PDF = ["pdf"];
+    const array DOCUMENTS_PDF = ["pdf"];
 
-    const DOCUMENTS = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ott", "ods", "sdc", "odp", "sdd", "pdf"];
+    const array DOCUMENTS = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ott", "ods", "sdc", "odp", "sdd", "pdf"];
 
     // ARCHIVES
-    const ARCHIVES_ZIP = ["zip"];
-    const ARCHIVES_7Z  = ["7z"];
-    const ARCHIVES_RAR = ["rar"];
+    const array ARCHIVES_ZIP = ["zip"];
+    const array ARCHIVES_7Z  = ["7z"];
+    const array ARCHIVES_RAR = ["rar"];
 
-    const ARCHIVES = ["zip", "7z", "rar"];
+    const array ARCHIVES = ["zip", "7z", "rar"];
 
     // IMPORT, EXPORT
 
-    const IMP_EXP_CSV  = ["csv"];
-    const IMP_EXP_XML  = ["xml"];
-    const IMP_EXP_JSON = ["json"];
+    const array IMP_EXP_CSV  = ["csv"];
+    const array IMP_EXP_XML  = ["xml"];
+    const array IMP_EXP_JSON = ["json"];
 
-    const IMP_EXP = ["csv", "xml", "json"];
+    const array IMP_EXP = ["csv", "xml", "json"];
 
     // ALL
-    const ALL_SUPPORTED_FILES = [
+    const array ALL_SUPPORTED_FILES = [
         "jpg",
         "jfif",
         "webp",
@@ -88,7 +88,7 @@ final class FilesTypes
     ];
 
     // FILES
-    const NO_IMAGES = [
+    const array NO_IMAGES = [
         "doc",
         "docx",
         "xls",
@@ -114,7 +114,7 @@ final class FilesTypes
     ];
 
     // DISALLOWED
-    const DISALLOWED = [
+    const array DISALLOWED = [
         "bin",
         "cgi",
         "exe",

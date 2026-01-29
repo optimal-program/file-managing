@@ -16,19 +16,15 @@ use Optimal\FileManaging\Resources\VectorImageFileResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\SystemPaths;
 use Optimal\FileManaging\Resources\FileResource;
+use RuntimeException;
 
 class FileCommander
 {
-    /** @var string */
-    private $actualPath;
+    private string $actualPath;
 
-    /** @var string */
-    private $basePath;
+    private string $basePath;
 
-    /**
-     * @param string $path
-     * @return string|null
-     */
+
     public static function getValidPath(string $path): ?string
     {
         $path = str_replace("\\", "/", $path);
@@ -46,8 +42,6 @@ class FileCommander
     }
 
     /**
-     * @param string $path
-     * @return string
      * @throws DirectoryNotFoundException
      */
     public static function checkPath(string $path): string
@@ -55,7 +49,7 @@ class FileCommander
         $validPath = self::getValidPath($path);
         $relative = true;
 
-        if ($validPath === SystemPaths::getScriptPath() . "/" . $path && $validPath === $path) {
+        if ($validPath === $path && $validPath === SystemPaths::getScriptPath() . "/" . $path) {
             $relative = false;
         }
 
@@ -66,42 +60,28 @@ class FileCommander
         return $validPath;
     }
 
-    /**
-     * @param string $extension
-     * @return bool
-     */
     public static function isImage(string $extension): bool
     {
         return in_array(strtolower($extension), FilesTypes::IMAGES);
     }
 
-    /**
-     * @param string $extension
-     * @return bool
-     */
     public static function isBitmapImage(string $extension): bool
     {
         return in_array(strtolower($extension), FilesTypes::BITMAP_IMAGES);
     }
 
     /**
-     * @param string $path
      * @throws DirectoryNotFoundException
      */
     public function setPath(string $path): void
     {
-        try {
-            $path = self::checkPath($path);
-        } catch (DirectoryNotFoundException $e) {
-            throw $e;
-        }
+        $path = self::checkPath($path);
 
         $this->actualPath = $path;
         $this->basePath = $path;
     }
 
     /**
-     * @return string
      * @throws DirectoryNotFoundException
      */
     public function getAbsolutePath(): string
@@ -110,7 +90,7 @@ class FileCommander
             throw new DirectoryNotFoundException("No directory set");
         }
 
-        if (strpos($this->actualPath, SystemPaths::getScriptPath()) !== false) {
+        if (str_contains($this->actualPath, SystemPaths::getScriptPath())) {
             return $this->actualPath;
         }
 
@@ -118,7 +98,6 @@ class FileCommander
     }
 
     /**
-     * @return string
      * @throws DirectoryNotFoundException
      */
     public function getRelativePath(): string
@@ -130,7 +109,6 @@ class FileCommander
     }
 
     /**
-     * @return string
      * @throws DirectoryNotFoundException
      */
     public function getUrlToDirectory(): string
@@ -138,10 +116,6 @@ class FileCommander
         return SystemPaths::getUrlDomain() . "/" . $this->getRelativePath();
     }
 
-    /**
-     * @param array $files
-     * @return array
-     */
     private function sortFiles(array $files): array
     {
         usort($files, "strnatcasecmp");
@@ -149,7 +123,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
      * @throws DirectoryNotFoundException
      */
     public function moveToDirectory(string $name): void
@@ -185,8 +158,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @return bool
      * @throws DirectoryNotFoundException
      */
     public function directoryExists(string $name): bool
@@ -198,9 +169,6 @@ class FileCommander
     }
 
     /**
-     * @param string $dirName
-     * @param bool $moveToDir
-     * @param int $chmod
      * @throws CreateDirectoryException
      * @throws DirectoryNotFoundException
      */
@@ -225,8 +193,6 @@ class FileCommander
     }
 
     /**
-     * @param bool $sort
-     * @return array
      * @throws DirectoryNotFoundException
      */
     public function getDirectories(bool $sort = true): array
@@ -247,9 +213,6 @@ class FileCommander
     }
 
     /**
-     * @param string $regex
-     * @param bool $sort
-     * @return array
      * @throws DirectoryNotFoundException
      */
     public function searchDirectories(string $regex = ".*", bool $sort = true): array
@@ -270,7 +233,6 @@ class FileCommander
     }
 
     /**
-     * @param string|null $name
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
@@ -289,11 +251,7 @@ class FileCommander
             }
         }
 
-        try {
-            $this->DeleteDir($path);
-        } catch (DeleteDirectoryException $e) {
-            throw $e;
-        }
+        $this->DeleteDir($path);
 
         if (!rmdir($path)) {
             throw new DeleteDirectoryException("Remove directory: " . $path . " wasn't successful");
@@ -302,7 +260,6 @@ class FileCommander
     }
 
     /**
-     * @param string|null $name
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
@@ -321,18 +278,10 @@ class FileCommander
             }
         }
 
-        try {
-            $this->DeleteDir($path);
-        } catch (DeleteDirectoryException $e) {
-            throw $e;
-        } catch (DeleteFileException $e) {
-            throw $e;
-        }
-
+        $this->DeleteDir($path);
     }
 
     /**
-     * @param string $path
      * @throws DeleteDirectoryException
      * @throws DeleteFileException
      */
@@ -347,19 +296,14 @@ class FileCommander
                     throw new DeleteDirectoryException("Remove directory: " . $path . "/" . $file . " wasn't successful");
                 }
             }
-            else {
-                if (!unlink($path . '/' . $file)) {
-                    throw new DeleteFileException("Remove file: " . $path . "/" . $file . " wasn't successful");
-                }
+            elseif (!unlink($path . '/' . $file)) {
+                throw new DeleteFileException("Remove file: " . $path . "/" . $file . " wasn't successful");
             }
         }
 
     }
 
     /**
-     * @param string $name
-     * @param string $newName
-     * @param bool $recursive
      * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
@@ -386,9 +330,6 @@ class FileCommander
     }
 
     /**
-     * @param string|null $path
-     * @param string $name
-     * @param string $newName
      * @throws DirectoryException
      * @throws DirectoryNotFoundException
      */
@@ -396,10 +337,8 @@ class FileCommander
     {
         foreach ($this->getDirectories() as $dir) {
 
-            if ($dir === $name) {
-                if (!rename($path . '/' . $dir, $path . "/" . $newName)) {
-                    throw new DirectoryException("Renaming directory: " . $path . "/" . $dir . " is not successful");
-                }
+            if (($dir === $name) && !rename($path . '/' . $dir, $path . "/" . $newName)) {
+                throw new DirectoryException("Renaming directory: " . $path . "/" . $dir . " is not successful");
             }
 
             $this->renameDirRec($path . '/' . $dir, $name, $newName);
@@ -407,9 +346,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @return bool
      * @throws DirectoryNotFoundException
      */
     public function fileExists(string $name, ?string $extension = null): bool
@@ -419,20 +355,15 @@ class FileCommander
         }
 
         if (is_null($extension)) {
-            $parts = explode(".", $name);
+            [$parts, $extension] = explode(".", $name);
             $name = $parts[0];
-            $extension = $parts[1];
         }
 
-        return file_exists($this->actualPath . "/" . $name . "." . $extension);
+        return file_exists("{$this->actualPath}/{$name}.{$extension}");
     }
 
     /**
-     * @param string $pattern
-     * @param bool $sort
-     * @return FileResource[]
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
     protected function getFilesRegex(string $pattern = ".*", bool $sort = true): array
     {
@@ -449,7 +380,7 @@ class FileCommander
         }
 
         $fileResources = [];
-        $actualPath = (string)$this->actualPath;
+        $actualPath = $this->actualPath;
 
         foreach ($foundFiles as $file) {
             if (!self::isImage(pathinfo($this->actualPath . "." . $file, PATHINFO_EXTENSION))) {
@@ -463,9 +394,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @return FileResource
      * @throws DirectoryNotFoundException
      * @throws FileNotFoundException
      */
@@ -480,15 +408,13 @@ class FileCommander
             throw new FileNotFoundException("File: " . $this->actualPath . "/" . $name . "." . $extension . " not found");
         }
 
-        $actualPath = (string)$this->actualPath;
+        $actualPath = $this->actualPath;
         return new FileResource($actualPath, $name, $extension);
     }
 
     /**
-     * @param bool $sort
-     * @return FileResource[]
-     * @throws DirectoryNotFoundException
      * @throws FileException
+     * @throws DirectoryNotFoundException
      */
     public function getFiles(bool $sort = true): array
     {
@@ -496,9 +422,6 @@ class FileCommander
     }
 
     /**
-     * @param string $pattern
-     * @param bool $sort
-     * @return FileResource[]
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
@@ -508,11 +431,6 @@ class FileCommander
     }
 
     /**
-     * @param string $pattern
-     * @param bool $sort
-     * @param bool $addBackupImage
-     * @param bool $addThumbs
-     * @return array
      * @throws DirectoryNotFoundException
      */
     protected function getImagesRegex(string $pattern = ".*", bool $sort = true, bool $addBackupImage = true, bool $addThumbs = true): array
@@ -542,11 +460,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @param bool $addBackupImage
-     * @param bool $addThumb
-     * @return AbstractImageFileResource
      * @throws DirectoryNotFoundException
      */
     public function getImage(string $name, ?string $extension = null, bool $addBackupImage = true, bool $addThumb = true): AbstractImageFileResource
@@ -560,7 +473,7 @@ class FileCommander
             $name = (string) pathinfo($this->actualPath . "/" . $name, PATHINFO_FILENAME);
         }
 
-        $actualPath = (string)$this->actualPath;
+        $actualPath = $this->actualPath;
 
         if (self::isBitmapImage($extension)) {
             $imageResource = new BitmapImageFileResource($actualPath, $name, $extension);
@@ -573,10 +486,7 @@ class FileCommander
     }
 
     /**
-     * @param bool $sort
-     * @return array
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
     public function getImages(bool $sort = true): array
     {
@@ -584,11 +494,7 @@ class FileCommander
     }
 
     /**
-     * @param string $pattern
-     * @param bool $sort
-     * @return array
      * @throws DirectoryNotFoundException
-     * @throws FileException
      */
     public function searchImages(string $pattern = ".*", bool $sort = true): array
     {
@@ -596,10 +502,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @param string $content
-     * @return bool
      * @throws CreateFileException
      * @throws DirectoryNotFoundException
      */
@@ -617,7 +519,7 @@ class FileCommander
             }
 
             if ($extension !== "") {
-                if (!in_array($extension, FilesTypes::DISALLOWED)) {
+                if (!in_array($extension, FilesTypes::DISALLOWED, true)) {
 
                     if (!$this->fileExists($name, $extension)) {
                         $f = fopen($this->actualPath . "/" . $name . "." . $extension, 'wb+');
@@ -643,10 +545,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @param string $content
-     * @param bool $append
      * @throws CreateFileException
      * @throws DirectoryNotFoundException
      */
@@ -685,10 +583,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @param string $newName
-     * @return bool
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
@@ -722,10 +616,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string $extension
-     * @param string $targetName
-     * @param string $targetExtension
      * @throws DirectoryNotFoundException
      * @throws FileNotFoundException
      */
@@ -745,11 +635,6 @@ class FileCommander
     }
 
     /**
-     * @param string $path
-     * @param string|null $name
-     * @param string|null $extension
-     * @param string|null $renameTo
-     * @return bool
      * @throws DirectoryNotFoundException
      */
     public function copyFileFromAnotherDirectory(string $path, ?string $name = null, ?string $extension = null, ?string $renameTo = null): bool
@@ -784,11 +669,6 @@ class FileCommander
     }
 
     /**
-     * @param string $name
-     * @param string|null $extension
-     * @param string $path
-     * @param string|null $renameTo
-     * @return bool
      * @throws DirectoryNotFoundException
      * @throws FileNotFoundException
      */
@@ -807,7 +687,7 @@ class FileCommander
 
             $validPath = self::checkPath($path);
 
-            if (copy($this->actualPath . "/" . $name . "." . $extension, $validPath . "/" . ($renameTo != null ? $renameTo : $name) . "." . $extension)) {
+            if (copy($this->actualPath . "/" . $name . "." . $extension, $validPath . "/" . ($renameTo ?? $name) . "." . $extension)) {
                 return true;
             }
 
@@ -820,7 +700,6 @@ class FileCommander
     }
 
     /**
-     * @param string $pattern
      * @throws DeleteFileException
      * @throws DirectoryNotFoundException
      */
@@ -847,11 +726,6 @@ class FileCommander
 
     }
 
-    /**
-     * @param string $targetPath
-     * @param string $destinationPath
-     * @param int $permissions
-     */
     private function copyDirectoryToRecursive(string $targetPath, string $destinationPath, int $permissions = 775): void
     {
 
@@ -866,7 +740,7 @@ class FileCommander
             }
             else {
                 if (!mkdir($destinationPath, $permissions) && !is_dir($destinationPath)) {
-                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $destinationPath));
+                    throw new RuntimeException(sprintf('Directory "%s" was not created', $destinationPath));
                 }
                 $this->copyDirectoryToRecursive($targetPath . "/" . $entry, $targetPath . "/" . $entry);
             }
@@ -877,8 +751,6 @@ class FileCommander
     }
 
     /**
-     * @param string $destPath
-     * @param int $permissions
      * @throws DirectoryNotFoundException
      */
     public function copyDirectoryTo(string $destPath, int $permissions = 775): void
@@ -890,5 +762,4 @@ class FileCommander
         $validPath = self::checkPath($destPath);
         $this->copyDirectoryToRecursive($this->getAbsolutePath(), $validPath, $permissions);
     }
-
 }

@@ -4,18 +4,17 @@ namespace Optimal\FileManaging\Utils;
 
 class ImageCropSettings
 {
+    private ?string $ratio = null;
+    private int $minWidth;
+    private int $maxWidth;
+    private int $minHeight;
+    private mixed $maxHeight;
+    private bool $resizable;
 
-    private $ratio = null;
-    private $minWidth;
-    private $maxWidth;
-    private $minHeight;
-    private $maxHeight;
-    private $resizable;
-
-    private $x1;
-    private $y1;
-    private $x2;
-    private $y2;
+    private int $x1;
+    private int $y1;
+    private int $x2;
+    private int $y2;
 
     public function __construct()
     {
@@ -28,183 +27,113 @@ class ImageCropSettings
         $this->minWidth = 0;
     }
 
-    /**
-     * @return float|null
-     */
     public function getRatio(): ?float
     {
         return $this->ratio;
     }
 
-    /**
-     * @param float $ratioW
-     * @param float $ratioH
-     * @return $this
-     */
-    public function setRatio(float $ratioW, float $ratioH)
+    public function setRatio(float $ratioW, float $ratioH): self
     {
-        $this->ratio = "" . $ratioW . ":" . $ratioH . "";
+        $this->ratio = "{$ratioW}:{$ratioH}";
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getMinWidth(): int
     {
         return $this->minWidth;
     }
 
-    /**
-     * @param int $minWidth
-     * @return $this
-     */
-    public function setMinWidth(int $minWidth)
+    public function setMinWidth(int $minWidth): self
     {
         $this->minWidth = $minWidth;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getMaxWidth(): int
     {
         return $this->maxWidth;
     }
 
-    /**
-     * @param int $maxWidth
-     * @return $this
-     */
-    public function setMaxWidth(int $maxWidth)
+    public function setMaxWidth(int $maxWidth): self
     {
         $this->maxWidth = $maxWidth;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getMinHeight(): int
     {
         return $this->minHeight;
     }
 
-    /**
-     * @param int $minHeight
-     * @return $this
-     */
-    public function setMinHeight(int $minHeight)
+    public function setMinHeight(int $minHeight): self
     {
         $this->minHeight = $minHeight;
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getMaxHeight()
+    public function getMaxHeight(): self
     {
         return $this->maxHeight;
     }
 
-    /**
-     * @param mixed $maxHeight
-     */
-    public function setMaxHeight($maxHeight)
+    public function setMaxHeight($maxHeight): self
     {
         $this->maxHeight = $maxHeight;
+        return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isResizable(): bool
     {
         return $this->resizable;
     }
 
-    /**
-     * @param bool $resizable
-     * @return $this
-     */
-    public function setResizable(bool $resizable)
+    public function setResizable(bool $resizable): self
     {
         $this->resizable = $resizable;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getX1(): int
     {
         return $this->x1;
     }
 
-    /**
-     * @param int $x1
-     * @return $this
-     */
-    public function setX1(int $x1)
+    public function setX1(int $x1): self
     {
         $this->x1 = $x1;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getY1(): int
     {
         return $this->y1;
     }
 
-    /**
-     * @param int $y1
-     * @return $this
-     */
-    public function setY1(int $y1)
+    public function setY1(int $y1): self
     {
         $this->y1 = $y1;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getX2(): int
     {
         return $this->x2;
     }
 
-    /**
-     * @param int $x2
-     * @return $this
-     */
-    public function setX2(int $x2)
+    public function setX2(int $x2): self
     {
         $this->x2 = $x2;
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getY2(): int
     {
         return $this->y2;
     }
 
-    /**
-     * @param int $y2
-     * @return $this
-     */
-    public function setY2(int $y2)
+    public function setY2(int $y2): self
     {
         $this->y2 = $y2;
         return $this;
     }
-
 }
