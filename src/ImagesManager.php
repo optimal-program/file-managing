@@ -2,6 +2,8 @@
 
 namespace Optimal\FileManaging;
 
+use Exception;
+use ImagickException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\FileNotFoundException;
@@ -9,14 +11,14 @@ use Optimal\FileManaging\Resources\BitmapImageFileResource;
 use Optimal\FileManaging\Resources\ImageManageGDResource;
 use Optimal\FileManaging\Resources\ImageManageResource;
 use Optimal\FileManaging\Resources\ImageManageImagickResource;
+use RuntimeException;
 
 class ImagesManager
 {
+    const string RESOURCE_TYPE_GD      = "gd";
+    const string RESOURCE_TYPE_IMAGICK = "imagick";
+    private FileCommander $commander;
 
-    const RESOURCE_TYPE_GD      = "gd";
-    const RESOURCE_TYPE_IMAGICK = "imagick";
-
-    private $commander;
 
     public function __construct()
     {
@@ -24,7 +26,6 @@ class ImagesManager
     }
 
     /**
-     * @param string $dir
      * @throws DirectoryNotFoundException
      */
     public function setSourceDirectory(string $dir): void
@@ -34,7 +35,6 @@ class ImagesManager
     }
 
     /**
-     * @return string
      * @throws DirectoryNotFoundException
      */
     public function getSourceDirectory(): string
@@ -43,15 +43,11 @@ class ImagesManager
     }
 
     /**
-     * @param string $imgName
-     * @param string|null $imgExtension
-     * @param string $resourceType
-     * @return ImageManageResource
      * @throws DirectoryNotFoundException
      * @throws FileException
      * @throws FileNotFoundException
-     * @throws \ImagickException
-     * @throws \Exception
+     * @throws ImagickException
+     * @throws Exception
      */
     public function loadImageManageResource(string $imgName, ?string $imgExtension = null, string $resourceType = self::RESOURCE_TYPE_GD): ImageManageResource
     {
@@ -61,15 +57,14 @@ class ImagesManager
         }
 
         if (is_null($imgExtension)) {
-            $imgExtension = pathinfo($this->commander->getAbsolutePath() . "/" . $imgName, PATHINFO_EXTENSION);
-            $imgName = pathinfo($this->commander->getAbsolutePath() . "/" . $imgName, PATHINFO_FILENAME);
+            $pathInfo = pathinfo("{$this->commander->getAbsolutePath()}/{$imgName}");
+            $imgExtension = $pathInfo['extension'];
+            $imgName = $pathInfo['filename'];
         }
 
         if ($this->commander->fileExists($imgName, $imgExtension)) {
 
             $image = $this->commander->getImage($imgName, $imgExtension);
-
-            $resource = null;
 
             if ($resourceType === self::RESOURCE_TYPE_GD && $image instanceof BitmapImageFileResource) {
                 return new ImageManageGDResource($image, $this->commander);
@@ -80,14 +75,13 @@ class ImagesManager
             }
 
             if ($resourceType !== self::RESOURCE_TYPE_GD && $resourceType !== self::RESOURCE_TYPE_IMAGICK) {
-                throw new \Exception('Wrong resource type');
+                throw new RuntimeException('Wrong resource type');
             }
 
-            throw new \Exception('Image is not bitmap!');
+            throw new RuntimeException('Image is not bitmap!');
         }
 
         throw new FileNotFoundException("File: " . $imgName . "." . $imgExtension . " not found in " . $this->commander->getRelativePath());
 
     }
-
 }

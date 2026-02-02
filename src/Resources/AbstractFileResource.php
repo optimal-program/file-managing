@@ -8,18 +8,13 @@ use Optimal\FileManaging\Utils\SystemPaths;
 
 abstract class AbstractFileResource
 {
+    protected ?string $name;
 
-    /** @var string */
-    protected $name;
+    protected ?string $extension;
 
-    /** @var string */
-    protected $extension;
+    protected int $size;
 
-    /** @var integer */
-    protected $size;
-
-    /** @var string */
-    protected $path;
+    protected string $path;
 
     /**
      * AbstractFileResource constructor.
@@ -37,12 +32,10 @@ abstract class AbstractFileResource
             $extension = (string) pathinfo($validPath, PATHINFO_EXTENSION);
             $validPath = (string) pathinfo($validPath, PATHINFO_DIRNAME);
         }
-        else {
-            if ($extension == null) {
-                $filePath = $validPath . "/" . $name;
-                $name = (string) pathinfo($filePath, PATHINFO_FILENAME);
-                $extension = (string) pathinfo($filePath, PATHINFO_EXTENSION);
-            }
+        elseif ($extension === null) {
+            $filePath = $validPath . "/" . $name;
+            $name = (string) pathinfo($filePath, PATHINFO_FILENAME);
+            $extension = (string) pathinfo($filePath, PATHINFO_EXTENSION);
         }
 
         FileCommander::checkPath($validPath . "/" . $name . "." . $extension);
@@ -152,12 +145,11 @@ abstract class AbstractFileResource
      */
     public function parseString(string $string): string
     {
-        $string = str_replace("{realName}", $this->getName(), $string);
-        $string = str_replace("{realExtension}", $this->getExtension(), $string);
-        $string = str_replace("{realNameEx}", $this->getNameExtension(), $string);
-        $string = str_replace("{realFileSize}", $this->getFileSize(), $string);
-
-        return $string;
+        return strtr($string, [
+            '{realName}'      => $this->getName(),
+            '{realExtension}' => $this->getExtension(),
+            '{realNameEx}'    => $this->getNameExtension(),
+            '{realFileSize}'  => $this->getFileSize(),
+        ]);
     }
-
 }

@@ -3,17 +3,19 @@
 namespace Optimal\FileManaging\Resources;
 
 use claviska\SimpleImage;
-use Optimal\FileManaging\Exception\GDException;
+use Exception;
+use Optimal\FileManaging\Exception\DeleteFileException;
+use Optimal\FileManaging\Exception\DirectoryNotFoundException;
+use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\FileCommander;
 
 final class ImageManageGDResource extends ImageManageResource
 {
 
     /**
-     * ImageManageGDResource constructor.
      * @param BitmapImageFileResource $image
      * @param FileCommander $commander
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(BitmapImageFileResource $image, FileCommander $commander)
     {
@@ -21,64 +23,41 @@ final class ImageManageGDResource extends ImageManageResource
         $this->simpleImage = new SimpleImage($this->image->getFilePath());
     }
 
-    /**
-     * @return SimpleImage
-     */
     public function getSimpleImage(): SimpleImage
     {
         return $this->simpleImage;
     }
 
-    /**
-     * @param SimpleImage $simpleImage
-     */
     public function setSimpleImage(SimpleImage $simpleImage): void
     {
         $this->simpleImage = $simpleImage;
     }
 
     /**
-     * @param int $degree
-     * @throws GDException
+     * @throws Exception
      */
     public function rotate(int $degree): void
     {
-        if (isset($degree) && is_numeric($degree)) {
-            $this->simpleImage->rotate($degree);
-        }
-        else {
-            throw new GDException("No degree defined!");
-        }
+        $this->simpleImage->rotate($degree);
     }
 
-    /**
-     * @param int|null $maxWidth
-     * @param int|null $maxHeight
-     */
     public function maxResize(int $maxWidth = null, int $maxHeight = null): void
     {
         $imgWidth = $this->simpleImage->getWidth();
         $imgHeight = $this->simpleImage->getHeight();
 
         if ($imgWidth > $maxWidth || $imgHeight > $maxHeight) {
-
             if ($imgWidth >= $imgHeight) {
                 $this->simpleImage->resize($maxWidth);
-            }
-            else {
+            } else {
                 $this->simpleImage->resize(null, $maxWidth);
             }
-
         }
 
         $this->image->setWidth($this->simpleImage->getWidth());
         $this->image->setHeight($this->simpleImage->getHeight());
     }
 
-    /**
-     * @param int|null $width
-     * @param int|null $height
-     */
     public function resize(?int $width = null, ?int $height = null): void
     {
         $this->simpleImage->resize($width, $height);
@@ -86,29 +65,23 @@ final class ImageManageGDResource extends ImageManageResource
         $this->image->setHeight($this->simpleImage->getHeight());
     }
 
-    /**
-     * @param int $x
-     * @param int $y
-     * @param int $width
-     * @param int $height
-     */
     public function cropImage(int $x, int $y, int $width, int $height): void
     {
         $this->simpleImage->crop($x, $y, $x + $width, $y + $height);
     }
 
+    /**
+     * @throws Exception
+     */
     public function show(): void
     {
         $this->simpleImage->toScreen();
     }
 
     /**
-     * @param string|null $myTarget
-     * @param string|null $newName
-     * @param string|null $newExtension
-     * @throws \Optimal\FileManaging\Exception\DeleteFileException
-     * @throws \Optimal\FileManaging\Exception\DirectoryNotFoundException
-     * @throws \Optimal\FileManaging\Exception\FileException
+     * @throws DeleteFileException
+     * @throws DirectoryNotFoundException
+     * @throws FileException
      */
     public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null): void
     {

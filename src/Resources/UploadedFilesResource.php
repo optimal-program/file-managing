@@ -1,15 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Optimal\FileManaging\Resources;
 
 class UploadedFilesResource
 {
+    private array $uploadedFiles;
 
-    /** @var array */
-    private $uploadedFiles;
-
-    /** @var array */
-    private $uploadedImages;
+    private array $uploadedImages;
 
     public function __construct($uploadedFiles, $uploadedImages)
     {
@@ -17,17 +14,11 @@ class UploadedFilesResource
         $this->uploadedImages = $uploadedImages;
     }
 
-    /**
-     * @return array
-     */
     public function getUploadedFiles(): array
     {
         return $this->uploadedFiles;
     }
 
-    /**
-     * @return array
-     */
     public function getUploadedImages(): array
     {
         return $this->uploadedImages;

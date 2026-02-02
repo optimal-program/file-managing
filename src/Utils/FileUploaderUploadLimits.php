@@ -9,7 +9,6 @@ class FileUploaderUploadLimits
     private int $iniMaxCount;
     private int $iniMaxFileSize;
     private int $iniMaxAllFilesSize;
-
     private int $maxCount;
     private int $maxFileSize;
     private ?string $maxFileSizeStr = null;
@@ -33,11 +32,6 @@ class FileUploaderUploadLimits
      */
     protected function checkIni(?int $maxCount = null, ?string $maxFileSizeStr = null, ?string $maxAllFilesSizeStr = null):void
     {
-
-        if (!$maxCount) {
-            $count = $this->maxCount;
-        }
-
         if (!$maxFileSizeStr) {
             $maxFileSizeBytes = $this->maxFileSize;
         }
@@ -72,12 +66,8 @@ class FileUploaderUploadLimits
      */
     public function setMaxCount(int $count):void
     {
-        try {
-            $this->checkIni($count);
-            $this->maxCount = $count;
-        } catch (IniException $e) {
-            throw $e;
-        }
+        $this->checkIni($count);
+        $this->maxCount = $count;
     }
 
     /**
@@ -86,13 +76,9 @@ class FileUploaderUploadLimits
      */
     public function setMaxFileSize(string $size):void
     {
-        try {
-            $this->checkIni(null, $size);
-            $this->maxFileSize = IniInfo::toBytes($size);
-            $this->maxFileSizeStr = $size;
-        } catch (IniException $e) {
-            throw $e;
-        }
+        $this->checkIni(null, $size);
+        $this->maxFileSize = IniInfo::toBytes($size);
+        $this->maxFileSizeStr = $size;
     }
 
     /**
@@ -101,13 +87,9 @@ class FileUploaderUploadLimits
      */
     public function setMaxPostSize(string $size):void
     {
-        try {
-            $this->checkIni(null, null, $size);
-            $this->maxAllFilesSize = IniInfo::toBytes($size);
-            $this->maxAllFilesSizeStr = $size;
-        } catch (IniException $e) {
-            throw $e;
-        }
+        $this->checkIni(null, null, $size);
+        $this->maxAllFilesSize = IniInfo::toBytes($size);
+        $this->maxAllFilesSizeStr = $size;
     }
 
     /**
@@ -166,5 +148,4 @@ class FileUploaderUploadLimits
     {
         return FilesTypes::DISALLOWED;
     }
-
 }
