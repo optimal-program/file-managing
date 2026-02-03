@@ -9,8 +9,7 @@
   ],
   "require": {
     "php": ">=8.4",
-    "claviska/simpleimage": "^4.4",
-    "ext-imagick": "*"
+    "claviska/simpleimage": "^4.4"
   },
   "authors": [
     {
