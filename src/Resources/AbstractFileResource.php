@@ -45,6 +45,16 @@ abstract class AbstractFileResource
         $this->size = filesize($this->path . "/" . $this->name . "." . $this->extension);
     }
 
+    /**
+     * Reads file info (size, resolution of an image, ...) from the file again - it is needed
+     * when the file was changed after the resource was created.
+     */
+    public function refreshFileInfo(): void
+    {
+        clearstatcache(true, $this->path . "/" . $this->name . "." . $this->extension);
+        $this->setFileInfo();
+    }
+
     public function getExtension(): string
     {
         return $this->extension;

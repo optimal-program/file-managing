@@ -12,9 +12,13 @@ use Optimal\FileManaging\Resources\UploadedFilesResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\ImageCropSettings;
 use Optimal\FileManaging\Utils\FileUploaderUploadLimits;
+use Optimal\FileManaging\Utils\ImageOutputSettings;
 
 class FileUploader
 {
+
+    public const DEFAULT_MAX_IMAGE_WIDTH = 3840;
+    public const DEFAULT_MAX_IMAGE_HEIGHT = 2160;
 
     private static ?FileUploader $instance = null;
     private array $_FILES;
@@ -23,8 +27,7 @@ class FileUploader
     private ?FileCommander $tmpDirCommander;
     private ImagesManager $imagesManager;
     private string $imagesResourceType;
-    private int $maxImageWidth;
-    private int $maxImageHeight;
+    private ImageOutputSettings $imageOutputSettings;
     private ?ImageCropSettings $imageThumbCropSettings = null;
     private FileUploaderUploadLimits $uploadLimits;
     private bool $autoRotateImages = true;
@@ -72,8 +75,7 @@ class FileUploader
             }
         }
 
-        $this->maxImageWidth = 3840;
-        $this->maxImageHeight = 2160;
+        $this->imageOutputSettings = new ImageOutputSettings(self::DEFAULT_MAX_IMAGE_WIDTH, self::DEFAULT_MAX_IMAGE_HEIGHT);
 
         $this->uploadedFiles = ["images" => [], "files" => []];
         $this->successMessages = [];
@@ -159,24 +161,53 @@ class FileUploader
         $this->imagesResourceType = $resource;
     }
 
-    public function getMaxImageWidth(): int
+    /**
+     * Settings of the resulting uploaded image - maximum dimensions in px it is resized into,
+     * output image format and compression quality.
+     */
+    public function getImageOutputSettings(): ImageOutputSettings
     {
-        return $this->maxImageWidth;
+        return $this->imageOutputSettings;
     }
 
-    public function setMaxImageWidth(int $maxImageWidth = 3840): void
+    public function setImageOutputSettings(ImageOutputSettings $imageOutputSettings): void
     {
-        $this->maxImageWidth = $maxImageWidth;
+        $this->imageOutputSettings = $imageOutputSettings;
     }
 
-    public function getMaxImageHeight(): int
+    public function getMaxImageWidth(): ?int
     {
-        return $this->maxImageHeight;
+        return $this->imageOutputSettings->getMaxWidth();
     }
 
-    public function setMaxImageHeight(int $maxImageHeight = 2160): void
+    public function setMaxImageWidth(?int $maxImageWidth = self::DEFAULT_MAX_IMAGE_WIDTH): void
     {
-        $this->maxImageHeight = $maxImageHeight;
+        $this->imageOutputSettings->setMaxWidth($maxImageWidth);
+    }
+
+    public function getMaxImageHeight(): ?int
+    {
+        return $this->imageOutputSettings->getMaxHeight();
+    }
+
+    public function setMaxImageHeight(?int $maxImageHeight = self::DEFAULT_MAX_IMAGE_HEIGHT): void
+    {
+        $this->imageOutputSettings->setMaxHeight($maxImageHeight);
+    }
+
+    /**
+     * Format uploaded images are saved in (null means the format they were uploaded in)
+     * and quality they are saved with (null means the default quality of the used image library).
+     */
+    public function setImageOutputFormat(?string $outputExtension, ?int $quality = null): void
+    {
+        $this->imageOutputSettings->setOutputExtension($outputExtension)
+                                  ->setQuality($quality);
+    }
+
+    public function setImageQuality(?int $quality): void
+    {
+        $this->imageOutputSettings->setQuality($quality);
     }
 
     public function isPostFile(string $inputName): bool
@@ -329,11 +360,11 @@ class FileUploader
                     $imageManageResource->autoRotate();
                 }
 
-                $imageManageResource->maxResize($this->maxImageWidth, $this->maxImageHeight);
-
                 // TODO image crop
 
-                $imageManageResource->save($this->targetDirCommander->getRelativePath());
+                // resize into maximum dimensions and save in required format with required quality
+                $imageManageResource->applyOutputSettings($this->imageOutputSettings, $this->targetDirCommander->getRelativePath());
+
                 $originalImageResource = $imageManageResource->getOutputImageResource();
                 $originalImageResourceExt = $originalImageResource->getExtension();
 
@@ -347,7 +378,7 @@ class FileUploader
                     // TODO image thumb crop
 
                     $resource = $imageManageResourceV->getSourceImageResource();
-                    $imageManageResourceV->save($this->targetDirCommander->getRelativePath(), $newName . "-thumb");
+                    $imageManageResourceV->save($this->targetDirCommander->getRelativePath(), $newName . "-thumb", null, $this->imageOutputSettings->getQuality());
 
                     $thumbImageResource = $imageManageResourceV->getOutputImageResource();
                 }
@@ -355,8 +386,9 @@ class FileUploader
                 $currDir = $this->targetDirCommander->getRelativePath();
 
                 if ($this->backup) {
+                    // the uploaded image can be saved in another format than it was uploaded in
                     $this->targetDirCommander->addDirectory("backup", true);
-                    $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $newName, $file["only_extension"]);
+                    $this->targetDirCommander->copyFileFromAnotherDirectory($currDir, $originalImageResource->getName(), $originalImageResourceExt);
                 }
 
                 $this->tmpDirCommander->removeFile($newName . "." . $file["only_extension"]);

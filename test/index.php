@@ -23,6 +23,7 @@ use Optimal\FileManaging\Resources\ImageManageImagickResource;
 use Optimal\FileManaging\Utils\FilesTypes;
 use Optimal\FileManaging\Utils\IniInfo;
 use Optimal\FileManaging\Utils\ImageCropSettings;
+use Optimal\FileManaging\Utils\ImageOutputSettings;
 use Optimal\FileManaging\Utils\ImageResolutionSettings;
 use Optimal\FileManaging\Utils\ImageResolutionsSettings;
 use Optimal\FileManaging\Utils\FileUploaderUploadLimits;
@@ -64,7 +65,10 @@ function section(string $name): void
 // Setup sandbox + fixtures
 // ----------------------------------------------------------------------------
 
-$sandbox = __DIR__ . '/sandbox';
+// FileCommander normalizes paths to forward slashes, the test paths have to match it on Windows
+$testDir = str_replace('\\', '/', __DIR__);
+
+$sandbox = $testDir . '/sandbox';
 if (is_dir($sandbox)) {
     $rrmdir = static function (string $p) use (&$rrmdir): void {
         foreach (array_diff(scandir($p), ['.', '..']) as $f) {
@@ -85,7 +89,7 @@ $_SERVER['SCRIPT_FILENAME'] = $_SERVER['SCRIPT_FILENAME'] ?? __FILE__;
 $_SERVER['SCRIPT_NAME']     = $_SERVER['SCRIPT_NAME']     ?? '/test/index.php';
 
 // Force SystemPaths to use the project root so relative paths resolve there.
-SystemPaths::$absolutePath = dirname(__DIR__);
+SystemPaths::$absolutePath = dirname($testDir);
 
 // Detect what GD can encode on this build.
 $hasJpeg = function_exists('imagejpeg');
@@ -112,6 +116,7 @@ function makeImage(string $path, int $w, int $h, array $rgb, string $format = 'p
 $src = $sandbox . '/source';
 makeImage($src . '/sample.png',  800, 600, [200, 30, 30],  'png');
 makeImage($src . '/banner.png', 1024, 768, [30, 120, 200], 'png');
+makeImage($src . '/portrait.png', 600, 1200, [120, 60, 180], 'png');
 if ($hasJpeg) {
     makeImage($src . '/photo.jpg', 1024, 768, [30, 120, 200], 'jpg');
 }
@@ -129,7 +134,7 @@ echo "Sandbox: {$sandbox}{$nl}";
 // SystemPaths
 // ----------------------------------------------------------------------------
 section('SystemPaths');
-ok('getScriptPath returns project root', SystemPaths::getScriptPath() === dirname(__DIR__));
+ok('getScriptPath returns project root', SystemPaths::getScriptPath() === dirname($testDir));
 
 // ----------------------------------------------------------------------------
 // FilesTypes
@@ -138,6 +143,52 @@ section('Utils\\FilesTypes');
 ok('IMAGES contains jpg', in_array('jpg', FilesTypes::IMAGES, true));
 ok('BITMAP_IMAGES contains png', in_array('png', FilesTypes::BITMAP_IMAGES, true));
 ok('DISALLOWED is array', is_array(FilesTypes::DISALLOWED));
+ok('getImageMimeType(jpg) = image/jpeg',   FilesTypes::getImageMimeType('jpg') === 'image/jpeg');
+ok('getImageMimeType(JPEG) = image/jpeg',  FilesTypes::getImageMimeType('JPEG') === 'image/jpeg');
+ok('getImageMimeType(jfif) = image/jpeg',  FilesTypes::getImageMimeType('jfif') === 'image/jpeg');
+ok('getImageMimeType(webp) = image/webp',  FilesTypes::getImageMimeType('webp') === 'image/webp');
+ok('getImageMimeType(png) = image/png',    FilesTypes::getImageMimeType('png') === 'image/png');
+ok('getImageMimeType(svg) = image/svg+xml', FilesTypes::getImageMimeType('svg') === 'image/svg+xml');
+
+// ----------------------------------------------------------------------------
+// ImageOutputSettings
+// ----------------------------------------------------------------------------
+section('Utils\\ImageOutputSettings');
+$outputSettings = new ImageOutputSettings(600, 400, 'webp', 80);
+ok('output settings max width',  $outputSettings->getMaxWidth() === 600);
+ok('output settings max height', $outputSettings->getMaxHeight() === 400);
+ok('output settings extension',  $outputSettings->getOutputExtension() === 'webp');
+ok('output settings quality',    $outputSettings->getQuality() === 80);
+ok('output settings resolution is limited', $outputSettings->isResolutionLimited());
+
+$emptyOutputSettings = new ImageOutputSettings();
+ok('empty output settings have no limits', !$emptyOutputSettings->isResolutionLimited());
+ok('empty output settings keep extension', $emptyOutputSettings->getTargetExtension('PNG') === 'png');
+ok('empty output settings have no quality', is_null($emptyOutputSettings->getQuality()));
+ok('output settings target extension', $outputSettings->getTargetExtension('png') === 'webp');
+ok('output settings normalize extension', (new ImageOutputSettings(null, null, '.WEBP'))->getOutputExtension() === 'webp');
+ok('output settings max resolution setter', $emptyOutputSettings->setMaxResolution(300, 200)->getMaxWidth() === 300);
+
+try {
+    $outputSettings->setOutputExtension('pdf');
+    ok('output settings refuse unsupported extension', false, 'no exception thrown');
+} catch (\RuntimeException) {
+    ok('output settings refuse unsupported extension', true);
+}
+
+try {
+    $outputSettings->setQuality(120);
+    ok('output settings refuse wrong quality', false, 'no exception thrown');
+} catch (\RuntimeException) {
+    ok('output settings refuse wrong quality', true);
+}
+
+try {
+    $outputSettings->setMaxWidth(0);
+    ok('output settings refuse zero width', false, 'no exception thrown');
+} catch (\RuntimeException) {
+    ok('output settings refuse zero width', true);
+}
 
 // ----------------------------------------------------------------------------
 // IniInfo
@@ -190,7 +241,7 @@ ok('fileExists(missing)=no', !$cmd->fileExists('nope', 'png'));
 
 // FileCommander::getImages only matches bitmap extensions (jpg/png/webp/gif/...),
 // SVG is excluded by design.
-$expectedImages = 2 /* sample.png, banner.png */
+$expectedImages = 3 /* sample.png, banner.png, portrait.png */
     + ($hasJpeg ? 1 : 0)
     + ($hasGif  ? 1 : 0);
 $images = $cmd->getImages();
@@ -267,6 +318,28 @@ $gd2->maxResize(512, 512);
 ok('maxResize bounded width', $gd2->getSourceImageResource()->getWidth() <= 512);
 ok('maxResize bounded height', $gd2->getSourceImageResource()->getHeight() <= 512);
 
+// 1024x768 into 500x500 box -> 500x375, ratio is kept
+$gd2b = $im->loadImageManageResource('banner', 'png', ImagesManager::RESOURCE_TYPE_GD);
+$gd2b->maxResize(500, 500);
+ok('maxResize landscape width 500', $gd2b->getSourceImageResource()->getWidth() === 500);
+ok('maxResize landscape height 375', $gd2b->getSourceImageResource()->getHeight() === 375, 'is ' . $gd2b->getSourceImageResource()->getHeight());
+
+// 600x1200 into 400x300 box -> 150x300, the height limit has to be respected too
+$gd2c = $im->loadImageManageResource('portrait', 'png', ImagesManager::RESOURCE_TYPE_GD);
+$gd2c->maxResize(400, 300);
+ok('maxResize portrait width 150', $gd2c->getSourceImageResource()->getWidth() === 150, 'is ' . $gd2c->getSourceImageResource()->getWidth());
+ok('maxResize portrait height 300', $gd2c->getSourceImageResource()->getHeight() === 300, 'is ' . $gd2c->getSourceImageResource()->getHeight());
+
+// only one dimension limited
+$gd2d = $im->loadImageManageResource('portrait', 'png', ImagesManager::RESOURCE_TYPE_GD);
+$gd2d->maxResize(null, 600);
+ok('maxResize height only', $gd2d->getSourceImageResource()->getWidth() === 300 && $gd2d->getSourceImageResource()->getHeight() === 600);
+
+// smaller image is not enlarged
+$gd2e = $im->loadImageManageResource('sample', 'png', ImagesManager::RESOURCE_TYPE_GD);
+$gd2e->maxResize(4000, 4000);
+ok('maxResize does not enlarge', $gd2e->getSourceImageResource()->getWidth() === 800 && $gd2e->getSourceImageResource()->getHeight() === 600);
+
 $gd3 = $im->loadImageManageResource('sample', 'png', ImagesManager::RESOURCE_TYPE_GD);
 $gd3->rotate(90);
 ok('rotate did not throw', true);
@@ -284,13 +357,51 @@ ok('save -> target', file_exists($sandbox . '/target/sample-resized.png'));
 ok('saved image width=200',  $w === 200);
 ok('saved image height=150', $h === 150);
 
+$savedResource = $gd5->getOutputImageResource();
+ok('saved resource has new resolution', $savedResource->getWidth() === 200 && $savedResource->getHeight() === 150);
+ok('saved resource has size of saved file', $savedResource->getFileSize() === filesize($sandbox . '/target/sample-resized.png'), 'is ' . $savedResource->getFileSize());
+ok('saved resource points to target dir', file_exists($savedResource->getFilePath()));
+
 // Convert format on save (requires GD jpeg support)
 if ($hasJpeg) {
     $gd6 = $im->loadImageManageResource('sample', 'png', ImagesManager::RESOURCE_TYPE_GD);
     $gd6->save($sandbox . '/target', 'sample-converted', 'jpg');
     ok('save converts to jpg', file_exists($sandbox . '/target/sample-converted.jpg'));
+    ok('converted resource has jpg extension', $gd6->getOutputImageResource()->getExtension() === 'jpg');
+
+    // quality is passed into the image library
+    $gdLow = $im->loadImageManageResource('sample', 'png', ImagesManager::RESOURCE_TYPE_GD);
+    $gdLow->save($sandbox . '/target', 'quality-low', 'jpg', 10);
+    $gdHigh = $im->loadImageManageResource('sample', 'png', ImagesManager::RESOURCE_TYPE_GD);
+    $gdHigh->save($sandbox . '/target', 'quality-high', 'jpg', 95);
+    $lowSize = filesize($sandbox . '/target/quality-low.jpg');
+    $highSize = filesize($sandbox . '/target/quality-high.jpg');
+    ok('lower quality means smaller file', $lowSize < $highSize, "low: {$lowSize}, high: {$highSize}");
+    ok('resource size matches saved file', $gdLow->getOutputImageResource()->getFileSize() === $lowSize);
 } else {
     echo "  [SKIP] GD has no JPEG support — format-conversion test skipped{$nl}";
+}
+
+// ----------------------------------------------------------------------------
+// Output settings applied on an image
+// ----------------------------------------------------------------------------
+section('ImageManageResource::applyOutputSettings');
+$gdKeep = $im->loadImageManageResource('banner', 'png', ImagesManager::RESOURCE_TYPE_GD);
+$gdKeep->applyOutputSettings(new ImageOutputSettings(300, 300), $sandbox . '/target', 'settings-keep-format');
+ok('output settings keep format', file_exists($sandbox . '/target/settings-keep-format.png'));
+ok('output settings resized to 300x225', $gdKeep->getOutputImageResource()->getWidth() === 300 && $gdKeep->getOutputImageResource()->getHeight() === 225);
+
+if ($hasWebp) {
+    $gdWebp = $im->loadImageManageResource('banner', 'png', ImagesManager::RESOURCE_TYPE_GD);
+    $gdWebp->applyOutputSettings(new ImageOutputSettings(300, 300, 'webp', 75), $sandbox . '/target', 'settings-webp');
+    $webpResource = $gdWebp->getOutputImageResource();
+    ok('output settings save webp', file_exists($sandbox . '/target/settings-webp.webp'));
+    ok('webp resource extension', $webpResource->getExtension() === 'webp');
+    ok('webp resource resolution', $webpResource->getWidth() === 300 && $webpResource->getHeight() === 225);
+    ok('webp resource size', $webpResource->getFileSize() === filesize($sandbox . '/target/settings-webp.webp'));
+    ok('webp mime type of saved file', (string) mime_content_type($sandbox . '/target/settings-webp.webp') === 'image/webp', (string) mime_content_type($sandbox . '/target/settings-webp.webp'));
+} else {
+    echo "  [SKIP] GD has no WEBP support — webp output tests skipped{$nl}";
 }
 
 // ----------------------------------------------------------------------------
@@ -345,9 +456,18 @@ ok('isPostFile=false when no files', $uploader->isPostFile('whatever') === false
 ok('countInputFiles=0 when no files', $uploader->countInputFiles('whatever') === 0);
 $uploader->setTemporaryDirectory($sandbox . '/tmp');
 $uploader->setTargetDirectory($sandbox . '/target');
+ok('default max image dimensions', $uploader->getMaxImageWidth() === FileUploader::DEFAULT_MAX_IMAGE_WIDTH && $uploader->getMaxImageHeight() === FileUploader::DEFAULT_MAX_IMAGE_HEIGHT);
 $uploader->setMaxImageWidth(1920);
 $uploader->setMaxImageHeight(1080);
 ok('setMaxImageWidth/Height', $uploader->getMaxImageWidth() === 1920 && $uploader->getMaxImageHeight() === 1080);
+$uploader->setImageOutputFormat('webp', 85);
+ok('setImageOutputFormat', $uploader->getImageOutputSettings()->getOutputExtension() === 'webp' && $uploader->getImageOutputSettings()->getQuality() === 85);
+$uploader->setImageQuality(70);
+ok('setImageQuality', $uploader->getImageOutputSettings()->getQuality() === 70);
+$uploader->setImageOutputSettings(new ImageOutputSettings(512, 512, 'jpg', 90));
+ok('setImageOutputSettings', $uploader->getMaxImageWidth() === 512 && $uploader->getImageOutputSettings()->getOutputExtension() === 'jpg');
+$uploader->setImageOutputFormat(null);
+ok('reset output format', is_null($uploader->getImageOutputSettings()->getOutputExtension()));
 $uploader->autoRotateImages(false);
 $uploader->enableBackup(false);
 $uploader->setImageManageResourceType(ImagesManager::RESOURCE_TYPE_GD);

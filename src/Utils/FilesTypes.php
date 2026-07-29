@@ -132,4 +132,22 @@ final class FilesTypes
         "css"
     ];
 
+    /**
+     * Mime type an image with given extension is saved with.
+     */
+    public static function getImageMimeType(string $extension): string
+    {
+        $extension = strtolower($extension);
+
+        if (in_array($extension, self::IMAGES_JPG, true)) {
+            return "image/jpeg";
+        }
+
+        if (in_array($extension, self::VECTOR_IMAGES, true)) {
+            return "image/svg+xml";
+        }
+
+        return "image/" . $extension;
+    }
+
 }

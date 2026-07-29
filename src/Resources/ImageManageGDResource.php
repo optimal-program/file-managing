@@ -9,6 +9,7 @@ use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\Exception\GDException;
 use Optimal\FileManaging\FileCommander;
+use Optimal\FileManaging\Utils\FilesTypes;
 
 final class ImageManageGDResource extends ImageManageResource
 {
@@ -43,18 +44,10 @@ final class ImageManageGDResource extends ImageManageResource
 
     public function maxResize(?int $maxWidth = null, ?int $maxHeight = null): void
     {
-        $imgWidth = $this->simpleImage->getWidth();
-        $imgHeight = $this->simpleImage->getHeight();
+        $newDimensions = $this->getMaxResizeDimensions($this->simpleImage->getWidth(), $this->simpleImage->getHeight(), $maxWidth, $maxHeight);
 
-        if ($imgWidth > $maxWidth || $imgHeight > $maxHeight) {
-
-            if ($imgWidth >= $imgHeight) {
-                $this->simpleImage->resize($maxWidth);
-            }
-            else {
-                $this->simpleImage->resize(null, $maxWidth);
-            }
-
+        if (!is_null($newDimensions)) {
+            $this->simpleImage->resize($newDimensions[0], $newDimensions[1]);
         }
 
         $this->image->setWidth($this->simpleImage->getWidth());
@@ -86,7 +79,7 @@ final class ImageManageGDResource extends ImageManageResource
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null): void
+    public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null, ?int $quality = null): void
     {
 
         $sameNameInSameDir = false;
@@ -128,7 +121,14 @@ final class ImageManageGDResource extends ImageManageResource
         $fileDestination = $this->commander->getAbsolutePath() . "/" . $pom . $name . '.' . $extension;
         $finalDestination = $this->commander->getAbsolutePath() . "/" . $name . '.' . $extension;
 
-        $this->simpleImage->toFile($fileDestination, 'image/' . (($extension === "jpg" || $extension === 'jpeg') ? 'jpeg' : $extension));
+        $mimeType = FilesTypes::getImageMimeType($extension);
+
+        if (is_null($quality)) {
+            $this->simpleImage->toFile($fileDestination, $mimeType);
+        }
+        else {
+            $this->simpleImage->toFile($fileDestination, $mimeType, $quality);
+        }
 
         if ($sameNameInSameDir) {
             $this->commander->removeFile($this->image->getNameExtension());
@@ -146,6 +146,9 @@ final class ImageManageGDResource extends ImageManageResource
         if (!is_null($myTarget)) {
             $this->image->setFileDirectoryPath($myTarget);
         }
+
+        // the saved image has different size and resolution than the source one
+        $this->image->refreshFileInfo();
     }
 
 }

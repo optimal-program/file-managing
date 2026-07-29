@@ -8,6 +8,7 @@ use Optimal\FileManaging\Exception\DeleteFileException;
 use Optimal\FileManaging\Exception\DirectoryNotFoundException;
 use Optimal\FileManaging\Exception\FileException;
 use Optimal\FileManaging\FileCommander;
+use Optimal\FileManaging\Utils\FilesTypes;
 
 final class ImageManageImagickResource extends ImageManageResource
 {
@@ -79,16 +80,10 @@ final class ImageManageImagickResource extends ImageManageResource
      */
     public function maxResize(?int $maxWidth = null, ?int $maxHeight = null): void
     {
-        $imgWidth = $this->resource->getImageWidth();
-        $imgHeight = $this->resource->getImageHeight();
+        $newDimensions = $this->getMaxResizeDimensions($this->resource->getImageWidth(), $this->resource->getImageHeight(), $maxWidth, $maxHeight);
 
-        if (($maxWidth !== null && $imgWidth > $maxWidth) || ($maxHeight !== null && $imgHeight > $maxHeight)) {
-            if ($imgWidth >= $imgHeight) {
-                $this->resource->resizeImage((int) $maxWidth, 0, Imagick::FILTER_LANCZOS, 1);
-            }
-            else {
-                $this->resource->resizeImage(0, (int) $maxHeight, Imagick::FILTER_LANCZOS, 1);
-            }
+        if (!is_null($newDimensions)) {
+            $this->resource->resizeImage($newDimensions[0], $newDimensions[1], Imagick::FILTER_LANCZOS, 1);
         }
 
         $this->image->setWidth($this->resource->getImageWidth());
@@ -129,7 +124,7 @@ final class ImageManageImagickResource extends ImageManageResource
      * @throws DirectoryNotFoundException
      * @throws FileException
      */
-    public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null): void
+    public function save(?string $myTarget = null, ?string $newName = null, ?string $newExtension = null, ?int $quality = null): void
     {
         $sameNameInSameDir = false;
 
@@ -170,7 +165,12 @@ final class ImageManageImagickResource extends ImageManageResource
         $fileDestination = $this->commander->getAbsolutePath() . "/" . $pom . $name . '.' . $extension;
         $finalDestination = $this->commander->getAbsolutePath() . "/" . $name . '.' . $extension;
 
-        $this->resource->setImageFormat(($extension === "jpg" || $extension === 'jpeg') ? 'jpeg' : $extension);
+        $this->resource->setImageFormat(in_array($extension, FilesTypes::IMAGES_JPG, true) ? "jpeg" : $extension);
+
+        if (!is_null($quality)) {
+            $this->resource->setImageCompressionQuality($quality);
+        }
+
         $this->resource->writeImage($fileDestination);
 
         if ($sameNameInSameDir) {
@@ -189,6 +189,9 @@ final class ImageManageImagickResource extends ImageManageResource
         if (!is_null($myTarget)) {
             $this->image->setFileDirectoryPath($myTarget);
         }
+
+        // the saved image has different size and resolution than the source one
+        $this->image->refreshFileInfo();
     }
 
 }
